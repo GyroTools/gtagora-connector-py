@@ -1,0 +1,26 @@
+##TITLE=Parameter List, ParaVision 6.0.1
+##JCAMPDX=4.24
+##DATATYPE=Parameter Values
+##ORIGIN=Bruker BioSpin MRI GmbH
+##OWNER=mri
+$$ 2017-09-18 11:38:43.838 +0200  mri@biospec94
+$$ /opt/PV6.0.1/data/mri/20170918_113550_Animal_ID_1_1/1/AdjStatePerScan
+$$ process /opt/PV6.0.1/prog/mod/pipe
+##$AdjScanStateCompleted=Yes
+##$AdjScanStateAdjName=( 2, 128 )
+<SHIM_Scan> <RCVR_Standard>
+##$AdjScanStateCategory=( 2 )
+SHIM RCVR
+##$AdjScanStateTime=( 2 )
+<2017-09-18T11:38:31,960+0200> <2017-09-18T11:38:32,005+0200>
+##$AdjScanStateExpno=( 2 )
+1 1
+##$AdjScanStateState=( 2 )
+adj_successful adj_successful
+##$AdjScanStateResultId=( 2, 65 )
+<2.16.756.5.5.100.4219345500.25895.1505727377.10> 
+<2.16.756.5.5.100.4219345500.25895.1505727377.11>
+##$AdjScanStateMethod=( 2, 128 )
+<Bruker:AdjShim> <Bruker:FLASH>
+##END=
+$$ File finished by PARX at 2017-09-18 11:38:43.838 +0200

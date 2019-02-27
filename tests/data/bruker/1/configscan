@@ -1,0 +1,143 @@
+##TITLE=Parameter List, ParaVision 6.0.1
+##JCAMPDX=4.24
+##DATATYPE=Parameter Values
+##ORIGIN=Bruker BioSpin MRI GmbH
+##OWNER=mri
+$$ 2017-09-18 11:36:14.118 +0200  mri@biospec94
+$$ /opt/PV6.0.1/data/mri/20170918_113550_Animal_ID_1_1/1/configscan
+$$ process /opt/PV6.0.1/prog/bin/parxserver
+##$CONFIG_SCAN_version=1
+##$CONFIG_SCAN_coil_configuration=( 65 )
+<2.16.756.5.5.100.3611295486.21670.1370528902.55>
+##$CONFIG_SCAN_coil_table=( 10240 )
+<$Bis,1,20160425,2048,COILTABLE,1#$Name,Rapid 1H/13C Res. / 13C SUC#$Id,1.0,
+2.16.756.5.5.100.3611295486.21670.1370528902.55,,8c5c#$PMap,1.0,1,Resonator 
+13C,Rapid,LIN00001,00001,,X HP#$PCAuxInfo,1.0,1,1,,PreampProbe,0,PreampProbe,
+0,,,#$PMap,1.0,2,Resonator 1H,Rapid,LIN00001,00001,,1H HP#$PCAuxInfo,1.0,2,1,,
+PreampProbe,3,PreampProbe,3,,,#$PMap,1.0,3,Surface Receive Coil 13C,Rapid,
+SUC00003,0001,,X LP#$PCAuxInfo,1.0,3,1,,,,ReceiverIn,1,,,#$EndBis, 53, 99#>
+##$CONFIG_SCAN_coils=( 3, 10240 )
+<$Bis,1,20160425,2048,PICS,5#\
+$Prd,LIN00001,00001,,,Rapid,0#\
+$Nam,Resonator 13C#\
+$PComp,1.0,MRI,,400#\
+$PType,1.0,MRI#\
+$PACoi,1.0,1#\
+$PMRI,1.0,Volume,1,1,,,#\
+$PChan,1.0,13C,,,,800,5,,5,#\
+$PCoil,1.0,1,,1,13C#\
+$PCConn,1.0,1,T/R,,1,txrx,,,1-4,#\
+$PAdmCtl,1.0,1,1,V,H,-36#\
+$EndBis,78,06#> <$Bis,1,20160425,2048,PICS,5#\
+$Prd,LIN00001,00001,,,Rapid,0#\
+$Nam,Resonator 1H#\
+$PComp,1.0,MRI,,400#\
+$PType,1.0,MRI#\
+$PACoi,1.0,1#\
+$PMRI,1.0,Volume,1,1,,,#\
+$PChan,1.0,1H,,,,800,5,,5,#\
+$PCoil,1.0,1,,1,1H#\
+$PCConn,1.0,1,T/R,,1,txrx,,,,#\
+$EndBis,8D,10#> <$Bis,1,20160425,2048,PICS,5#\
+$Prd,SUC00003,0001,,,Rapid,0#\
+$Nam,Surface Receive Coil 13C#\
+$PComp,1.0,MRI,,400#\
+$PType,1.0,MRI#\
+$PACoi,1.0,1#\
+$PMRI,1.0,Surface,1,1,,#\
+$PChan,1.0,13C,,,,,,,,#\
+$PCoil,1.0,1,,1,13C#\
+$PCConn,1.0,1,R/N,,1,txrx,,,1-4,#\
+$PAdmCtl,1.0,1,1,V,L,-36#\
+$EndBis,DE,0F#>
+##$CONFIG_SCAN_operation_mode=( <$Bis,1,20131120,2048,ROUTING,1#$Name,[1H] 
+TX/RX Volume#$OpMode,1.0,D/A,
+2.16.756.5.5.100.3611295486.21670.1370528902.55#$TxCoil,1.0,1,Resonator 1H,
+Rapid,LIN00001,00001,1#$TxCoil,1.0,2,Resonator 13C,Rapid,LIN00001,00001,
+1#$RxCoil,1.0,1,Resonator 1H,Rapid,LIN00001,00001,1#$NUC,1.0,1H,13C,,,,,,
+#$FCUCHAN,1.0,2,1,0,0,0,0,0,0,0#$RSEL,1.0,1,2,0,0,0,0,0,0,0,0,0,0,0,0,
+0#$SWIBOX,1.0,1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0#$PRECHAN,1.0,0,3,-1,-1,-1,
+-1,-1,-1,-1,-1,-1,-1,-1,-1,-1#$RECCHAN,1.0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0#$RECSEL,1.0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0#$RECPRE,1.0,-1,3,-1,-1,-1,-1,-1,
+-1,-1,-1,-1,-1,-1,-1,-1#$HPMOD,1.0,1,1,0,0,0,0,0#$EndBis,A0,44#> , <[1H] 
+TX/RX Volume> )
+$$ @vis= CONFIG_SCAN_version CONFIG_SCAN_operation_mode
+##$ROUTING_VERSION=20070901
+##$FCUCHAN=( 10 )
+0 2 1 0 0 0 0 0 0 0
+##$RSEL=( 16 )
+0 1 2 0 0 0 0 0 0 0 0 0 0 0 0 0
+##$SWIBOX=( 20 )
+0 1 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+##$POWMOD=HIGH
+##$HPMOD=( 8 )
+0 1 1 0 0 0 0 0
+##$PRECHAN=( 16 )
+-1 0 3 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+##$RECCHAN=( 16 )
+0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+##$RECSEL=( 16 )
+0 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0
+##$RECPRE=( 16 )
+-1 -1 3 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+##$NLOGCH=2
+##$SELREC=( 10 )
+0 0 0 0 0 0 0 0 0 0
+##$AdjConfigurationMode=( <MRI_Default> , <MRI Default> )
+##$AdjKnownList=( 9 )
+((EMPTY, <NO_ADJUSTMENT>, <>, <>, <>, <>, <>, on_demand, <>, 
+HANDLE_ACQUISITION), No, No) ((SHIM, <SHIM_Study>, <Study Shim>, <Iterative 
+shimming ...>, <ADJ_SHIM>, <PVM_StudyShim>, <>, per_study, <>, 
+HANDLE_ACQUISITION), Yes, No) ((FREQ, <FREQ_Standard>, <Basic Frequency>, 
+<Setting Reference Frequency ...>, <ADJ_SF>, <PVM_FrqAdj1H,PVM_FrqAdj1HPpm,
+PVM_NucleiPpmRef>, <>, per_study, <>, HANDLE_ACQUISITION), Yes, No) ((TRANSM, 
+<TRANSM_Standard>, <Reference Power>, <Setting TX Reference Power ...>, 
+<ADJ_REFG>, <PVM_StudyRefAtt>, <>, per_study, <>, HANDLE_ACQUISITION), Yes, 
+No) ((RCVR, <RCVR_Standard>, <Receiver Gain>, <Setting Receiver Gain ...>, 
+<#METHOD#>, <RG>, <>, per_scan, <>, HANDLE_ACQUISITION), No, No) ((WOBBLE, 
+<WOBBLE_Standard>, <Wobble Adj.>, <Tuning & matching the coil ...>, 
+<ADJ_WOBBLE>, <>, <>, per_study, <>, HANDLE_ACQUISITION), Yes, Yes) 
+((OTHERADJ, <B0Map_Standard>, <B0 Map>, <Measuring B0 map ...>, <ADJ_B0MAP>, 
+<PVM_StudyB0Map>, <>, per_study, <>, HANDLE_ACQUISITION), No, Yes) ((SHIM, 
+<SHIM_Scan>, <Scan Shim>, <Calculating shims ...>, <ADJ_SHIM>, <>, <>, 
+per_scan, <>, HANDLE_ACQUISITION), No, No) ((OTHERADJ, <BASIC_Shim>, <Setting 
+Startup Shim>, <Initializes a proper shim condition>, <ADJ_BASIC_shim>, <>, <>
+, per_study, <>, HANDLE_ACQUISITION), Yes, No)
+##$AdjPerStudyOrder=( 4 )
+OTHERADJ FREQ SHIM TRANSM
+##$AdjPerScanOrder=( 2 )
+(SHIM, Yes, <SHIM_Scan>) (RCVR, No, <RCVR_Standard>)
+$$ @vis= CONFIG_SCAN_COIL_GROUP ROUTING_GROUP AdjKnownList AdjPerStudyOrder
+##$AdjListPerScan=( 1 )
+(EMPTY, <SHIM_Scan>, <Scan Shim>, <Calculating shims ...>, <ADJ_SHIM>, <>, <>,
+ per_scan, <>, HANDLE_ACQUISITION)
+##$AdjListOnDemand=( 2 )
+(WOBBLE, <WOBBLE_Standard>, <Wobble Adj.>, <Tuning & matching the coil ...>, 
+<ADJ_WOBBLE>, <>, <>, per_study, <>, HANDLE_ACQUISITION) (OTHERADJ, 
+<B0Map_Standard>, <B0 Map>, <Measuring B0 map ...>, <ADJ_B0MAP>, 
+<PVM_StudyB0Map>, <>, per_study, <>, HANDLE_ACQUISITION)
+##$CONFIG_SCAN_gradient_system=( 10240 )
+<$Bis,1,20070906,2048,GRADSYS,1#$Production,W3305565,0058,00,03,BFR,
+20091208#$Name,B-GA12S2 N.C.2 INSERT FOR BGA20S BC70/30#$GradSystem,1.0,19,
+S116,0,,1#$GradTempSensor,1.0,5,PT100,75#$GradTempSensor,1.0,6,PT100,
+75#$GradCoil,1.0,B0,S,2500,1.4,,130,10,#$GradCoil,1.0,X,S,935,0.11,0.043,500,
+300,740#$GradCoil,1.0,Y,S,935,0.10,0.095,500,300,580#$GradCoil,1.0,Z,S,935,
+0.10,0.016,500,300,810#$EndBis,71,F1#>
+##$CONFIG_SCAN_shim_system=( 10240 )
+<$Bis,1,20070725,2048,SHIMSYS,1#$Production,W3305565,0058,00,03,BFR,
+20091208#$Name,B-GA12S2 N.C.2 INSERT FOR BGA20S BC70/30#$ShimSystem,1.0,19,
+S116,7,,#$ShimTempSensor,1.0,1,PTC,#$ShimCoil,1.0,1,3.2,150,10,#$ShimCoil,1.0,
+2,2.9,150,10,#$ShimCoil,1.0,3,2.9,150,10,#$ShimCoil,1.0,4,3.6,150,10,
+#$ShimCoil,1.0,5,3.6,150,10,#$ShimCoil,1.0,6,4.4,150,10,#$ShimCoil,1.0,7,1.0,
+150,10,#$ShimFunction,1.0,1,Z2,2,250#$ShimFunction,1.0,2,ZX,2,
+260#$ShimFunction,1.0,3,ZY,2,260#$ShimFunction,1.0,4,2XY,2,110#$ShimFunction,
+1.0,5,X2-Y2,2,110#$ShimFunction,1.0,6,Z3,3,10#$ShimFunction,1.0,7,Z4,4,
+1#$ShimMatrix,1.0,1,1,1.0#$ShimMatrix,1.0,2,2,1.0#$ShimMatrix,1.0,3,3,
+1.0#$ShimMatrix,1.0,4,4,1.0#$ShimMatrix,1.0,5,5,1.0#$ShimMatrix,1.0,6,6,
+1.0#$ShimMatrix,1.0,7,7,1.0#$EndBis,69,CA#>
+##$ACQ_status=( 32 )
+<S116>
+$$ @vis= AdjPerScanOrder AdjListPerScan AdjListOnDemand ADJUSTMENT_GROUP
+$$ @vis= ACQ_status CONFIG_SCAN
+##END=
+$$ File finished by PARX at 2017-09-18 11:36:14.118 +0200

@@ -1,0 +1,39 @@
+##TITLE=Parameter List, ParaVision 6.0.1
+##JCAMPDX=4.24
+##DATATYPE=Parameter Values
+##ORIGIN=Bruker BioSpin MRI GmbH
+##OWNER=mri
+$$ 2017-09-18 11:38:43.837 +0200  mri@biospec94
+$$ /opt/PV6.0.1/data/mri/20170918_113550_Animal_ID_1_1/AdjStatePerStudy
+$$ process /opt/PV6.0.1/prog/mod/pipe
+##$AdjStudyStateCompleted=Yes
+##$AdjStudyStateResetNdx=0
+##$AdjStudyStateAdjName=( 4, 128 )
+<BASIC_Shim> <FREQ_Standard> <SHIM_Study> <TRANSM_Standard>
+##$AdjStudyStateCategory=( 4 )
+OTHERADJ FREQ SHIM TRANSM
+##$AdjStudyStateTime=( 4 )
+<2017-09-18T11:36:17,591+0200> <2017-09-18T11:36:17,702+0200> 
+<2017-09-18T11:36:28,468+0200> <2017-09-18T11:36:59,875+0200>
+##$AdjStudyStateExpno=( 4 )
+1 1 1 1
+##$AdjStudyStateState=( 4 )
+adj_successful adj_successful adj_successful adj_successful
+##$AdjStudyStateResultId=( 4, 65 )
+<2.16.756.5.5.100.4219345500.25895.1505727377.6> 
+<2.16.756.5.5.100.4219345500.25895.1505727377.7> 
+<2.16.756.5.5.100.4219345500.25895.1505727377.8> 
+<2.16.756.5.5.100.4219345500.25895.1505727377.9>
+##$AdjStudyStateMethod=( 4, 128 )
+<Bruker:AdjTuneupShim> <Bruker:AdjSf> <Bruker:AdjShim> <Bruker:AdjRefG>
+##$AdjStudyStateMethodContext=( 4, 1024 )
+<> <> <> <>
+##$AdjStudyStateHwChainNdxs=( 4 )
+(0, 0) (0, 0) (0, 1) (1, 1)
+##$AdjStudyStateHwChains=( 2 )
+((SHIM_CHAIN, -1), <B-GA12S2 N.C.2 INSERT FOR BGA20S BC70/30 (BFR 
+W3305565/0058).312252.no>) ((TRANS_CHAIN, -2), 
+<2.16.756.5.5.100.3611295486.21670.1370528902.55 -2 2 2 2 1 3 1H  0>)
+##$AdjStudyListConfigTime=1445498371
+##END=
+$$ File finished by PARX at 2017-09-18 11:38:43.838 +0200

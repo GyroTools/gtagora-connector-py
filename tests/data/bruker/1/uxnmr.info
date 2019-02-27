@@ -1,0 +1,154 @@
+CONFIGURATION INFORMATION
+=========================
+
+Path         : /opt/PV6.Beta.0.42/conf/instr/spect/uxnmr.info
+Date         : Fri Sep 13 09:52:35 2013
+Release      : TopSpin Acquisition Version 3.1PV beta-pl0
+Installed in : /opt/PV6.Beta.0.42
+Host         : biospec94
+OS           : CentOS release 5.9 (Final)
+CPU          : Intel(R) Xeon(R) CPU E5-1620 0 @ 3.60GHz (8 cores at 1200 MHz with Hyperthreading)
+User         : mri (MRI User)
+Description  : BioSpec 9.4T
+Location     : ETH Zuerich
+System       : Avance III NMR spectrometer
+1H-frequency : 400.34 MHz
+Order Number : 10073490
+Configured in: /opt/PV6.Beta.0.42/conf/instr/spect
+
+IPSO: connected to spectrometer subnet
+- TCP/IP address = 149.236.99.252
+ - IPSO type: AQS
+- Tctrl : 1
+- Fctrls: 2
+- Gctrl1: with digital preemphasis
+- Rctrl : 1
+- FREDs : 1
+- DPP : 1
+
+DRU: AQS DRU-E Z102520/03122 ECL 07.00
+- TCP/IP address = 149.236.99.89
+- Firmware Version = 130606
+- DRU controls AQS-Rack and HPPR/2
+DRU: AQS DRU-E Z102520/03123 ECL 07.00
+- TCP/IP address = 149.236.99.88
+- Firmware Version = 130606
+DRU: AQS DRU-E Z102520/03111 ECL 07.00
+- TCP/IP address = 149.236.99.87
+- Firmware Version = 130606
+- DRU controls AQS-Rack and HPPR/2
+DRU: AQS DRU-E Z102520/03112 ECL 07.00
+- TCP/IP address = 149.236.99.86
+- Firmware Version = 130606
+DRU: AQS DRU-E Z102520/03109 ECL 07.00
+- TCP/IP address = 149.236.99.85
+- Firmware Version = 130606
+DRU: AQS DRU-E Z102520/03110 ECL 07.00
+- TCP/IP address = 149.236.99.84
+- Firmware Version = 130606
+DRU: AQS DRU-E Z102520/03114 ECL 07.00
+- TCP/IP address = 149.236.99.83
+- Firmware Version = 130606
+DRU: AQS DRU-E Z102520/03113 ECL 07.00
+- TCP/IP address = 149.236.99.82
+- Firmware Version = 130606
+
+AQS: connected to 149.236.99.89:/dev/tty10
+  _Slot_ SBSB _____________________Board_____________________
+  Number Addr Type HW-VS FW-VS ID  ECL Name   Description
+  -----------------------------------------------------------
+     0   0x24 0x32     0        S  2.0 SGU-1  AQS SGU/3 600 (2CH) Z117129/00394 ECL 02.00 FPGA-Vs=20130417
+     2   0x10 0x43   0x5    CD  R  0.1 REC-1  AQS RXAD/2 600 Z130588/272 ECL 00.01
+     3   0x34 0xd6   0x1        X  2.0 REF-1  REF/3-600 Reference Board for AQS/3 Receiver
+     6   0x11 0x43   0x5    CD  R  0.1 REC-2  AQS RXAD/2 600 Z130588/273 ECL 00.01
+    10   0x1d 0xcb     0    --  N  1.0 PUL-1  AQS PULSE SPLITTER Z104431/00209 ECL 01.00
+    13   0xa0 0x93     0        V  0.0 PS-1   
+    14   0xa1 0x91     0        V  1.1 PS-2   AQS PSM-D Power Supply Module
+    --   0x20 0xd8     0        B  1.1 MASTER AQS/3+ Chassis
+     1   0x20  0x7     0        B      MASTER AQS Rack Master
+
+AQS2M-1: connected to 149.236.99.87:/dev/tty10
+  _Slot_ SBSB _____________________Board_____________________
+  Number Addr Type HW-VS FW-VS ID  ECL Name   Description
+  -----------------------------------------------------------
+     2   0x10 0x43   0x5    CD  R  0.1 REC-3  AQS RXAD/2 600 Z130588/274 ECL 00.01
+     4   0x11 0x43   0x5    CD  R  0.1 REC-4  AQS RXAD/2 600 Z130588/271 ECL 00.01
+     6   0x12 0x43   0x5    CD  R  0.1 REC-5  AQS RXAD/2 600 Z130588/288 ECL 00.01
+     8   0x13 0x43   0x5    CD  R  0.1 REC-6  AQS RXAD/2 600 Z130588/312 ECL 00.01
+    10   0x14 0x43   0x5    CD  R  0.1 REC-7  AQS RXAD/2 600 Z130588/313 ECL 00.01
+    12   0x15 0x43   0x5    CD  R  0.1 REC-8  AQS RXAD/2 600 Z130588/314 ECL 00.01
+    16   0x1c 0xca   0x1    --  M  2.1 RFS-1  AQS RF SPLITTER Z104432/00211 ECL 02.01
+    --   0x20 0xce     0        B  3.2 AQS/2-M AQS/2M Chassis
+     1   0x20  0x7     0        B      MASTER AQS Rack Master
+
+
+Router: none installed
+
+
+Transmitters at the spectrometer subnet:
+----------------------------------------
+BLA_W1345502_0066 W1345502/0066 ECL 0:
+- TCP/IP address = 149.236.99.254
+- Firmware VS    = 20120627
+- Amplifier      = BLA UPGRADE CONTROLLER: W1345502/0066 ECL 0
+- Controller     = BLA CONTROL BOARD 6 2CH: W1522050/6861 ECL 50
+
+Gradient amplifiers at the spectrometer subnet:
+----------------------------------------------
+BGA1: BGAU_W134655_0011
+- TCP/IP address   = 149.236.99.253
+- Firmware version = 20130612
+- Web version      = 6.0
+- Current limits   = 0.0/X, 0.0/Y, 0.0/Z (in A)
+
+Preamplifiers :
+HPPR: - HPPR/2 preamplifier connected to 149.236.99.89:/dev/tty10
+    Type      : HPPR/2
+    Controller: Application firmware = c.
+                no LED display for tuning and matching
+    Module  1 : HPLNA BB31P (reflection meter)
+                 PN=Z111091, SN=00051 from 20130221
+    Module  2 : HPLNA 1HMRI (virtual 50 Ohm reference: 100.5%/0.1deg, reflection meter)
+                 PN=Z105207, SN=00007 from 20060313
+    Module  3 : HPLNA 1HMRI (virtual 50 Ohm reference: 100.5%/0.1deg, reflection meter)
+                 PN=Z105207, SN=00006 from 20060313
+    Module  4 : HPLNA 19F1H (virtual 50 Ohm reference: 99.7%/0.1deg, reflection meter)
+                 PN=Z103203, SN=00179 from 20121027
+    Module  5 : ADM Function Module
+
+    Module  6 : ADM-CRP Function Module (frequency range 200-400MHz)
+
+
+
+Frequency generation:
+- F1: for SGU
+- F2: for SGU
+
+
+
+RF cable connections (detected by 'confamp')
+--------------------------------------------------------------------
+SGU1 NORM output -> input 1 of transmitter 1 (BLA UPGRADE CONTROLLER W1345502/0066 at TCP/IP 149.236.99.254)
+SGU1 AUX  output -> TUNE signal input of HPPR
+SGU2 NORM output -> input 2 of transmitter 1 (BLA UPGRADE CONTROLLER W1345502/0066 at TCP/IP 149.236.99.254)
+SGU2 AUX  output -> TUNE signal input of HPPR
+
+Blanking cable connections (detected by 'confamp')
+--------------------------------------------------------------------
+transmitter 1 (BLA UPGRADE CONTROLLER W1345502/0066 at TCP/IP 149.236.99.254) amplifier B-1000W uses blanking 1
+transmitter 1 (BLA UPGRADE CONTROLLER W1345502/0066 at TCP/IP 149.236.99.254) amplifier B-300W uses blanking 1
+transmitter 1 (BLA UPGRADE CONTROLLER W1345502/0066 at TCP/IP 149.236.99.254) amplifier B-1000W uses blanking 2
+transmitter 1 (BLA UPGRADE CONTROLLER W1345502/0066 at TCP/IP 149.236.99.254) amplifier B-300W uses blanking 2
+
+LO cable connections (detected by 'confrecsel')
+--------------------------------------------------------------------
+SGU1 -> Rf-Splitter input 1 (-> REC1)
+SGU1 -> SGU2 -> Rf-Splitter input 2 (-> REC1-8)
+
+Preamplifier connections (detected by 'confrecpre')
+--------------------------------------------------------------------
+Tune-SGU2 -> HPLNA BB31P -> REC1
+Tune-SGU2 -> HPLNA 1HMRI -> REC1
+Tune-SGU1 -> HPLNA 1HMRI -> REC2
+Tune-SGU1 -> HPLNA 19F1H -> REC2
+

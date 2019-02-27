@@ -1,0 +1,179 @@
+##TITLE=Parameter List, ParaVision 6.0.1
+##JCAMPDX=4.24
+##DATATYPE=Parameter Values
+##ORIGIN=Bruker BioSpin MRI GmbH
+##OWNER=mri
+$$ 2017-09-18 11:39:27.939 +0200  mri@biospec94
+$$ /opt/PV6.0.1/data/mri/20170918_113550_Animal_ID_1_1/1/pdata/1/visu_pars
+$$ process /opt/PV6.0.1/prog/bin/parxserver
+##$VisuVersion=3
+##$VisuUid=( 65 )
+<2.16.756.5.5.100.9223372038926637660.27394.1505727567.1>
+##$VisuCreator=( 65 )
+<ParaVision>
+##$VisuCreatorVersion=( 65 )
+<6.0.1>
+##$VisuCreationDate=<2017-09-18T11:39:27,938+0200>
+##$VisuInstanceModality=( 65 )
+<MR>
+$$ @vis= VisuVersion VisuUid VisuCreator VisuCreatorVersion VisuCreationDate
+##$VisuCoreFrameCount=3
+##$VisuCoreDim=2
+##$VisuCoreSize=( 2 )
+256 256
+$$ @vis= VisuInstanceModality VisuInstance VisuCoreFrameCount VisuCoreDim
+##$VisuCoreDimDesc=( 2 )
+spatial spatial
+##$VisuCoreExtent=( 2 )
+60 60
+##$VisuCoreFrameThickness=( 1 )
+1.13951652776349
+##$VisuCoreUnits=( 2, 65 )
+<mm> <mm>
+$$ @vis= VisuCoreSize VisuCoreDimDesc VisuCoreExtent VisuCoreFrameThickness
+##$VisuCoreOrientation=( 3, 9 )
+1 0 0 0 1 0 0 0 1 0 1 0 0 0 -1 -1 0 0 1 0 0 0 0 -1 0 1 0
+##$VisuCorePosition=( 3, 3 )
+-30 -30 0 0 -30 30 -30 0 30
+##$VisuCoreDataMin=( 3 )
+3.62312146996277 1.34259549156769 1.24974757995942
+##$VisuCoreDataMax=( 3 )
+25304.0610522861 32766.5 30201.6409474956
+$$ @vis= VisuCoreUnits VisuCoreOrientation VisuCorePosition VisuCoreDataMin
+##$VisuCoreDataOffs=( 3 )
+0 0 0
+##$VisuCoreDataSlope=( 3 )
+0.00107434802618667 0.00107434802618667 0.00107434802618667
+##$VisuCoreFrameType=( 1 )
+MAGNITUDE_IMAGE
+##$VisuCoreSlicePacksDef=(0, 3)
+$$ @vis= VisuCoreDataMax VisuCoreDataOffs VisuCoreDataSlope VisuCoreFrameType
+##$VisuCoreSlicePacksSlices=( 3 )
+(0, 1) (1, 1) (2, 1)
+##$VisuCoreSlicePacksSliceDist=( 3 )
+2.13951652776349 2.13951652776349 2.13951652776349
+$$ @vis= VisuCoreSlicePacksDef VisuCoreSlicePacksSlices
+##$VisuCoreWordType=_16BIT_SGN_INT
+##$VisuCoreByteOrder=littleEndian
+$$ @vis= VisuCoreSlicePacksSliceDist VisuCore VisuCoreWordType
+##$VisuCoreTransposition=( 3 )
+0 1 1
+##$VisuFGOrderDescDim=1
+##$VisuFGOrderDesc=( 1 )
+(3, <FG_SLICE>, <>, 0, 2)
+$$ @vis= VisuCoreByteOrder VisuCoreTransposition VisuPixel VisuFGOrderDescDim
+##$VisuGroupDepVals=( 2 )
+(<VisuCoreOrientation>, 0) (<VisuCorePosition>, 0)
+##$VisuSubjectName=( 65 )
+<Animal_Name>
+##$VisuSubjectId=( 65 )
+<Animal_ID>
+$$ @vis= VisuFGOrderDesc VisuGroupDepVals VisuFrameOrderDesc VisuSubjectName
+##$VisuSubjectUid=( 65 )
+<2.16.756.5.5.100.4219345500.3547.1505727350.517>
+##$VisuSubjectInstanceCreationDate=(1505727350, 134, 120)
+##$VisuSubjectBirthDate=( 9 )
+<20170521>
+$$ @vis= VisuSubjectId VisuSubjectUid VisuSubjectInstanceCreationDate
+##$VisuSubjectSex=FEMALE
+##$VisuSubjectComment=( 2048 )
+<Additional info>
+##$VisuSubjectType=Quadruped
+$$ @vis= VisuSubjectBirthDate VisuSubjectSex VisuSubjectComment
+##$VisuStudyUid=( 65 )
+<2.16.756.5.5.100.4219345500.3547.1505727350.518>
+##$VisuStudyDate=<2017-09-18T11:35:50,134+0200>
+##$VisuStudyId=( 65 )
+<Study_Name>
+##$VisuStudyNumber=1
+$$ @vis= VisuSubjectType VisuSubject VisuStudyUid VisuStudyDate VisuStudyId
+##$VisuSubjectWeight=0.309
+##$VisuStudyReferringPhysician=( 65 )
+<mri>
+##$VisuStudyDescription=( 2048 )
+<\
+Additional study info>
+$$ @vis= VisuStudyNumber VisuSubjectWeight VisuStudyReferringPhysician
+##$VisuExperimentNumber=1
+##$VisuProcessingNumber=1
+$$ @vis= VisuStudyDescription VisuStudy VisuExperimentNumber
+##$VisuSeriesDate=<2017-09-18T11:39:27,938+0200>
+##$VisuSubjectPosition=Head_Supine
+##$VisuSeriesTypeId=( 65 )
+<ACQ_BRUKER_PVM>
+$$ @vis= VisuProcessingNumber VisuSeriesDate VisuSubjectPosition
+$$ @vis= VisuSeriesTypeId VisuSeries VisuCoilReceive VisuCoilTransmit
+##$VisuManufacturer=( 65 )
+<Bruker BioSpin MRI GmbH>
+##$VisuAcqSoftwareVersion=( 65 )
+<6.0.1>
+##$VisuInstitution=( 65 )
+<ETH Zuerich>
+$$ @vis= VisuContrastAgent VisuManufacturer VisuAcqSoftwareVersion
+##$VisuStation=( 65 )
+<BioSpec 9.4T>
+##$VisuSystemOrderNumber=( 65 )
+<10073490>
+##$VisuAcqDate=<2017-09-18T11:38:44,103+0200>
+$$ @vis= VisuInstitution VisuStation VisuSystemOrderNumber VisuEquipment
+##$VisuAcqEchoTrainLength=1
+##$VisuAcqSequenceName=( 40 )
+<Bruker:FLASH>
+##$VisuAcqNumberOfAverages=2
+$$ @vis= VisuAcqDate VisuAcqEchoTrainLength VisuAcqSequenceName
+##$VisuAcqImagingFrequency=400.477818658407
+##$VisuAcqImagedNucleus=( 8 )
+<1H>
+##$VisuAcqRepetitionTime=( 1 )
+20
+$$ @vis= VisuAcqNumberOfAverages VisuAcqImagingFrequency VisuAcqImagedNucleus
+##$VisuAcqPhaseEncSteps=128
+##$VisuAcqPixelBandwidth=375.600961538462
+##$VisuAcqFlipAngle=30
+$$ @vis= VisuAcqRepetitionTime VisuAcqPhaseEncSteps VisuAcqPixelBandwidth
+##$VisuAcqSize=( 2 )
+96 128
+##$VisuAcqImageSizeAccellerated=Yes
+##$VisuAcqGradEncoding=( 2 )
+read_enc phase_enc
+$$ @vis= VisuAcqFlipAngle VisuAcqSize VisuAcqImageSizeAccellerated
+##$VisuAcqEchoTime=( 1 )
+2.4
+##$VisuAcquisitionProtocol=( 65 )
+<1_Localizer>
+##$VisuAcqScanTime=5120
+$$ @vis= VisuAcqGradEncoding VisuAcqEchoTime VisuAcquisitionProtocol
+##$VisuAcqAntiAlias=( 2 )
+1 1
+##$VisuAcqEchoSequenceType=GradientEcho
+##$VisuAcqSpinsVelocityEncoded=No
+$$ @vis= VisuAcqScanTime VisuAcqAntiAlias VisuAcqEchoSequenceType
+##$VisuAcqHasTimeOfFlightContrast=No
+##$VisuAcqIsEpiSequence=No
+$$ @vis= VisuAcqSpinsVelocityEncoded VisuAcqHasTimeOfFlightContrast
+##$VisuAcqSpectralSuppression=NoSuppression
+##$VisuAcqKSpaceTraversal=RectilinearTraversal
+$$ @vis= VisuAcqIsEpiSequence VisuAcqSpectralSuppression
+##$VisuAcqEncodingOrder=( 2 )
+LinearEncoding LinearEncoding
+##$VisuAcqKSpaceTrajectoryCnt=1
+$$ @vis= VisuAcqKSpaceTraversal VisuAcqEncodingOrder
+##$VisuAcqKSpaceFiltering=( 2 )
+NO_WDW NO_WDW
+##$VisuAcqFlowCompensation=FlowNone
+$$ @vis= VisuAcqKSpaceTrajectoryCnt VisuAcqKSpaceFiltering
+##$VisuAcqSpoiling=GradientSpoiled
+##$VisuAcqPartialFourier=( 2 )
+1.6 1
+##$VisuAcqParallelReductionFactor=( 2 )
+1 1
+$$ @vis= VisuAcqFlowCompensation VisuAcqSpoiling VisuAcqPartialFourier
+##$VisuAcqMagnetizationTransfer=No
+##$VisuAcqBloodSignalNulling=No
+$$ @vis= VisuAcqParallelReductionFactor VisuAcqMagnetizationTransfer
+##$VisuCardiacSynchUsed=No
+##$VisuRespSynchUsed=No
+$$ @vis= VisuAcqBloodSignalNulling VisuCardiacSynchUsed VisuRespSynchUsed
+$$ @vis= VisuAcquisition VisuMpi VisuDepricated Visu
+##END=
+$$ File finished by PARX at 2017-09-18 11:39:27.939 +0200

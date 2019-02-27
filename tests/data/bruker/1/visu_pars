@@ -1,0 +1,147 @@
+##TITLE=Parameter List, ParaVision 6.0.1
+##JCAMPDX=4.24
+##DATATYPE=Parameter Values
+##ORIGIN=Bruker BioSpin MRI GmbH
+##OWNER=mri
+$$ 2017-09-18 11:39:27.974 +0200  mri@biospec94
+$$ /opt/PV6.0.1/data/mri/20170918_113550_Animal_ID_1_1/1/visu_pars
+$$ process /opt/PV6.0.1/prog/mod/acq_out
+##$VisuVersion=3
+##$VisuUid=( 65 )
+<2.16.756.5.5.100.9223372038926637660.27394.1505727567.1>
+##$VisuCreator=( 65 )
+<ParaVision>
+##$VisuCreatorVersion=( 65 )
+<6.0.1>
+##$VisuCreationDate=<2017-09-18T11:39:27,938+0200>
+##$VisuInstanceModality=( 65 )
+<MR>
+##$VisuCoreFrameCount=3
+##$VisuCoreDim=2
+##$VisuCoreSize=( 2 )
+256 256
+##$VisuCoreDimDesc=( 2 )
+spatial spatial
+##$VisuCoreExtent=( 2 )
+60 60
+##$VisuCoreFrameThickness=( 1 )
+1.13951652776349
+##$VisuCoreUnits=( 2, 65 )
+<mm> <mm>
+##$VisuCoreOrientation=( 3, 9 )
+1 0 0 0 1 0 0 0 1 0 1 0 0 0 -1 -1 0 0 1 0 0 0 0 -1 0 1 0
+##$VisuCorePosition=( 3, 3 )
+-30 -30 0 0 -30 30 -30 0 30
+##$VisuCoreDataMin=( 3 )
+3.62312146996277 1.34259549156769 1.24974757995942
+##$VisuCoreDataMax=( 3 )
+25304.0610522861 32766.5 30201.6409474956
+##$VisuCoreDataOffs=( 3 )
+0 0 0
+##$VisuCoreDataSlope=( 3 )
+0.00107434802618667 0.00107434802618667 0.00107434802618667
+##$VisuCoreFrameType=( 1 )
+MAGNITUDE_IMAGE
+##$VisuCoreSlicePacksDef=(0, 3)
+##$VisuCoreSlicePacksSlices=( 3 )
+(0, 1) (1, 1) (2, 1)
+##$VisuCoreSlicePacksSliceDist=( 3 )
+2.13951652776349 2.13951652776349 2.13951652776349
+##$VisuCoreWordType=_16BIT_SGN_INT
+##$VisuCoreByteOrder=littleEndian
+##$VisuCoreTransposition=( 3 )
+0 1 1
+##$VisuFGOrderDescDim=1
+##$VisuFGOrderDesc=( 1 )
+(3, <FG_SLICE>, <>, 0, 2)
+##$VisuGroupDepVals=( 2 )
+(<VisuCoreOrientation>, 0) (<VisuCorePosition>, 0)
+##$VisuSubjectName=( 65 )
+<Animal_Name>
+##$VisuSubjectId=( 65 )
+<Animal_ID>
+##$VisuSubjectUid=( 65 )
+<2.16.756.5.5.100.4219345500.3547.1505727350.517>
+##$VisuSubjectInstanceCreationDate=(1505727350, 134, 120)
+##$VisuSubjectBirthDate=( 9 )
+<20170521>
+##$VisuSubjectSex=FEMALE
+##$VisuSubjectComment=( 2048 )
+<Additional info>
+##$VisuSubjectType=Quadruped
+##$VisuStudyUid=( 65 )
+<2.16.756.5.5.100.4219345500.3547.1505727350.518>
+##$VisuStudyDate=<2017-09-18T11:35:50,134+0200>
+##$VisuStudyId=( 65 )
+<Study_Name>
+##$VisuStudyNumber=1
+##$VisuSubjectWeight=0.309
+##$VisuStudyReferringPhysician=( 65 )
+<mri>
+##$VisuStudyDescription=( 2048 )
+<\
+Additional study info>
+##$VisuExperimentNumber=1
+##$VisuProcessingNumber=1
+##$VisuSeriesDate=<2017-09-18T11:39:27,938+0200>
+##$VisuSubjectPosition=Head_Supine
+##$VisuSeriesTypeId=( 65 )
+<ACQ_BRUKER_PVM>
+##$VisuManufacturer=( 65 )
+<Bruker BioSpin MRI GmbH>
+##$VisuAcqSoftwareVersion=( 65 )
+<6.0.1>
+##$VisuInstitution=( 65 )
+<ETH Zuerich>
+##$VisuStation=( 65 )
+<BioSpec 9.4T>
+##$VisuSystemOrderNumber=( 65 )
+<10073490>
+##$VisuAcqDate=<2017-09-18T11:38:44,103+0200>
+##$VisuAcqEchoTrainLength=1
+##$VisuAcqSequenceName=( 40 )
+<Bruker:FLASH>
+##$VisuAcqNumberOfAverages=2
+##$VisuAcqImagingFrequency=400.477818658407
+##$VisuAcqImagedNucleus=( 8 )
+<1H>
+##$VisuAcqRepetitionTime=( 1 )
+20
+##$VisuAcqPhaseEncSteps=128
+##$VisuAcqPixelBandwidth=375.600961538462
+##$VisuAcqFlipAngle=30
+##$VisuAcqSize=( 2 )
+96 128
+##$VisuAcqImageSizeAccellerated=Yes
+##$VisuAcqGradEncoding=( 2 )
+read_enc phase_enc
+##$VisuAcqEchoTime=( 1 )
+2.4
+##$VisuAcquisitionProtocol=( 65 )
+<1_Localizer>
+##$VisuAcqScanTime=5120
+##$VisuAcqAntiAlias=( 2 )
+1 1
+##$VisuAcqEchoSequenceType=GradientEcho
+##$VisuAcqSpinsVelocityEncoded=No
+##$VisuAcqHasTimeOfFlightContrast=No
+##$VisuAcqIsEpiSequence=No
+##$VisuAcqSpectralSuppression=NoSuppression
+##$VisuAcqKSpaceTraversal=RectilinearTraversal
+##$VisuAcqEncodingOrder=( 2 )
+LinearEncoding LinearEncoding
+##$VisuAcqKSpaceTrajectoryCnt=1
+##$VisuAcqKSpaceFiltering=( 2 )
+NO_WDW NO_WDW
+##$VisuAcqFlowCompensation=FlowNone
+##$VisuAcqSpoiling=GradientSpoiled
+##$VisuAcqPartialFourier=( 2 )
+1.6 1
+##$VisuAcqParallelReductionFactor=( 2 )
+1 1
+##$VisuAcqMagnetizationTransfer=No
+##$VisuAcqBloodSignalNulling=No
+##$VisuCardiacSynchUsed=No
+##$VisuRespSynchUsed=No
+##END=
+$$ File finished by PARX at 2017-09-18 11:39:27.975 +0200

@@ -1,0 +1,2 @@
+class AgoraException(Exception):
+    pass
