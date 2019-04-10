@@ -1,6 +1,7 @@
 from gtagora.exception import AgoraException
 from gtagora.models.base import BaseModel
 from gtagora.http.client import Client
+from gtagora.models.base import get_client
 
 
 class User(BaseModel):
@@ -9,6 +10,8 @@ class User(BaseModel):
     @classmethod
     def get_current_user(cls, http_client=None):
         url = f'{cls.BASE_URL}current'
+        http_client = get_client(http_client)
+
         response = http_client.get(url)
 
         if response.status_code == 200:
@@ -19,7 +22,7 @@ class User(BaseModel):
 
     @classmethod
     def get_or_create(cls, username, password, email=None, first_name=None, last_name=None, http_client=None):
-        http_client = http_client
+        http_client = get_client(http_client)
         url = cls.BASE_URL
 
         data = cls.get_list({'username': username})

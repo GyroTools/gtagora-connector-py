@@ -1,15 +1,17 @@
 from gtagora.exception import AgoraException
 from gtagora.models.share import ShareLevel
 
+def get_client(http_client):
+    from gtagora import Agora
+
+    return http_client if http_client else Agora.default_client
 
 class BaseModel:
 
     BASE_URL = ''
 
     def __init__(self, http_client=None):
-        from gtagora import Agora
-
-        self.http_client = http_client if http_client else Agora.default_client
+        self.http_client = get_client(http_client)
 
     @classmethod
     def from_response(cls, model_dict, http_client=None):
