@@ -6,31 +6,29 @@ class BaseModel:
 
     BASE_URL = ''
 
-    def __init__(self, http_client):
-        self.http_client = http_client
+    def __init__(self, http_client=None):
+        from gtagora import Agora
 
-    def _set_values(self, model_dict):
-        for key, value in model_dict.items():
-            setattr(self, key, value)
+        self.http_client = http_client if http_client else Agora.default_client
 
     @classmethod
-    def from_response(cls, model_dict, http_client):
-        instance = cls(http_client)
+    def from_response(cls, model_dict, http_client=None):
+        instance = cls(http_client=http_client)
         instance._set_values(model_dict)
 
         return instance
 
     @classmethod
-    def get(cls, id, http_client):
-        instance = cls(http_client)
+    def get(cls, id, http_client=None):
+        instance = cls(http_client=http_client)
         return instance._get_object(id)
 
     @classmethod
-    def get_list(cls, http_client, filters=None):
+    def get_list(cls, filters=None, http_client=None):
         if filters and not isinstance(filters, dict):
             raise AgoraException('The filter must be a dict')
 
-        instance = cls(http_client)
+        instance = cls(http_client=http_client)
         filters = filters if filters else {}
         if 'limit' not in filters:
             filters['limit'] = '10000000000'
@@ -46,15 +44,20 @@ class BaseModel:
             return True
         raise AgoraException('Could not delete FolderItem')
 
+    def _set_values(self, model_dict):
+        for key, value in model_dict.items():
+            setattr(self, key, value)
+
     def _get_object(self, id):
         url = f'{self.BASE_URL}{id}/'
+        print(url)
         response = self.http_client.get(url)
-
+        print(response.text)
         if response.status_code == 200:
             data = response.json()
-            return self.__class__.from_response(data, self.http_client)
+            return self.__class__.from_response(data, http_client=self.http_client)
 
-        raise AgoraException('Could not get the series')
+        raise AgoraException('Could not get the {0}'.format(__class__.__name__))
 
     def _get_object_list(self, url, params, object_class):
         response = self.http_client.get(url, params=params)
@@ -71,7 +74,7 @@ class BaseModel:
                     print('Warning: Could not get all series')
 
                 for r in results:
-                    object_list.append(object_class.from_response(r, self.http_client))
+                    object_list.append(object_class.from_response(r))
 
             return object_list
 
@@ -97,7 +100,7 @@ class LinkToFolderMixin:
         post_data = {}
         response = self.http_client.post(url, post_data)
         if response.status_code == 201:
-            return FolderItem.from_response(response.json(), self.http_client)
+            return FolderItem.from_response(response.json(), http_client=self.http_client)
 
         raise AgoraException('Could not create a link')
 
@@ -110,4 +113,4 @@ class ShareMixin:
 
         url = f'{self.BASE_URL}/{self.id}/shares/'
         data = [{"user": user_id, "group": group_id, "level": share_level}]
-        response = self.http_client.post(url, data)
+        response = self.http_client.post(url, json=data)

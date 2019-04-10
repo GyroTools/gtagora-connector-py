@@ -1,15 +1,11 @@
 from gtagora.exception import AgoraException
 from gtagora.models.base import BaseModel, DownloadDatasetMixin
-from gtagora.models.dataset import Dataset
 from gtagora.models.exam import Exam
 
 
 class Patient(BaseModel, DownloadDatasetMixin):
 
     BASE_URL = '/api/v1/patient/'
-
-    def __init__(self, http_client):
-        super().__init__(http_client)
 
     def get_exams(self, filters=None):
         if filters and not isinstance(filters, dict):

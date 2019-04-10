@@ -22,18 +22,13 @@ class DatasetType:
 class Dataset(LinkToFolderMixin, BaseModel):
     BASE_URL = '/api/v1/dataset/'
 
-    def __init__(self, http_client):
-        # if 'parameterset' not in model_dict:
-        #     raise AgoraException('Could not initialize the Dataset: parameterset is missing')
-
-        super().__init__(http_client)
-
     def _set_values(self, model_dict):
         for key, value in model_dict.items():
             if key == 'datafiles':
                 datafiles = []
                 for item in model_dict['datafiles']:
-                    datafiles.append(Datafile.from_response(item, self.http_client))
+                    datafiles.append(Datafile.from_response(item,
+                                                            http_client=self.http_client))
                 setattr(self, key, datafiles)
             else:
                 setattr(self, key, value)
@@ -98,7 +93,7 @@ class Dataset(LinkToFolderMixin, BaseModel):
         else:
             raise AgoraException('Please specify a SeriesID, ExamID or FolderID')
 
-        response = self.http_client.post(url, data, timeout=60)
+        response = self.http_client.post(url, json=data, timeout=60)
         if response.status_code == 201:
             data = response.json()
             if 'id' in data:
@@ -129,7 +124,7 @@ class Dataset(LinkToFolderMixin, BaseModel):
             if not os.path.isfile(curFile):
                 raise AgoraException('File does not exist: ' + curFile)
 
-        dataset = Dataset(http_client)
+        dataset = Dataset(http_client=http_client)
         dataset.create(series_id=series_id, exam_id=exam_id, folder_id=folder_id, type=dataset_type)
         url = f'/api/v1/dataset/{dataset.id}/upload/'
         if http_client.upload(url, input_files, target_files):

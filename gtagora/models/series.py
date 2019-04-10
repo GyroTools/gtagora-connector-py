@@ -6,12 +6,6 @@ from gtagora.models.dataset import Dataset
 class Series(LinkToFolderMixin, DownloadDatasetMixin, BaseModel):
     BASE_URL = '/api/v1/serie/'
 
-    def __init__(self, http_client):
-        # if 'acquisition_number' not in model_dict:
-        #     raise AgoraException('Could not initialize the Series: acquisition_number is missing')
-
-        super().__init__(http_client)
-
     def get_datasets(self, filters=None):
         if filters and not isinstance(filters, dict):
             raise AgoraException('The filter must be a dict')

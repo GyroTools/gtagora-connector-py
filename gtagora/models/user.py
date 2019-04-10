@@ -1,13 +1,13 @@
 from gtagora.exception import AgoraException
 from gtagora.models.base import BaseModel
+from gtagora.http.client import Client
 
 
 class User(BaseModel):
     BASE_URL = '/api/v1/user/'
 
     @classmethod
-    def get_current_user(cls, http_client):
-        
+    def get_current_user(cls, http_client=None):
         url = f'{cls.BASE_URL}current'
         response = http_client.get(url)
 
@@ -17,30 +17,30 @@ class User(BaseModel):
 
         raise AgoraException('Could not get the current user')
 
-    def get_or_create(self, username, email=None, first_name=None, last_name=None):
-        url = self.BASE_URL
-        
-        response = self.get_list(self.http_client, {'username': username})
-        if response.status_code == 200:
-            data = response.json()
-            for user in data:
-                if user['username'] == username:
-                    self._set_values(data)
-                    return self, True
+    @classmethod
+    def get_or_create(cls, username, password, email=None, first_name=None, last_name=None, http_client=None):
+        http_client = http_client
+        url = cls.BASE_URL
+
+        data = cls.get_list({'username': username})
+        for user in data:
+            if user.username == username:
+                return user, True
 
         data = {
             'username': username,
+            'password': password,
             'email': email,
             'first_name': first_name,
             'last_name': last_name
         }
 
-        response = self.http_client.post(url, data, timeout=60)
+        response = http_client.post(url, data, timeout=60)
         if response.status_code == 201:
             data = response.json()
             if 'id' in data:
-                self._set_values(data)
-                return self, False
+                new_user = User.from_response(data, http_client)
+                return new_user, False
 
         raise AgoraException('Could not create the user')
 

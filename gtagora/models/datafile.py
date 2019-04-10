@@ -1,18 +1,11 @@
 import os.path
 from copy import deepcopy
 
-from gtagora.exception import AgoraException
 from gtagora.models.base import BaseModel
 
 
 class Datafile(BaseModel):
     BASE_URL = '/api/v1/datafile/'
-
-    def __init__(self, http_client):
-        # if 'rel_filename' not in model_dict:
-        #     raise AgoraException('Could not initialize the Datafile: rel_filename is missing')
-
-        super().__init__(http_client)
 
     def download(self, filename=None):
         if not filename:

@@ -14,24 +14,14 @@ from gtagora.models.import_package import ImportPackage
 
 
 class Agora:
-    mLongTimeout = 180
-    mVerifyCertificate = False
+    long_timeout = 180
+    verify_certificate = False
 
-    def __init__(self, connection):
-        self.connection = connection
-        self.http_client = Client(connection)
-        # if connection:
-        # uri = urlparse(connection.mURL)
-        # connection.mURL = uri.scheme
-        # if uri.port:
-        #     connection.mURL += ':' + uri.port
-        #     self.connection = connection
-        # else:
-        #     self.connection = Connection(url, api_key=api_key, user=user, password=password)
-        #     # Check if we can connect to the agora server (also checks credentials)
-        #     IsConnection, ErrorMessage = gtAgoraRequest.check_connection(self.connection.mURL, self.connection)
-        #     if not IsConnection:
-        #         raise AgoraException('Could not connect to Agora: ' + ErrorMessage)
+    default_client = None
+
+    def __init__(self, client):
+        self.http_client = client
+        self.set_default_client(client)
 
     @staticmethod
     def create(url, api_key=None, user=None, password=None):
@@ -46,10 +36,11 @@ class Agora:
         client.check_connection()
         return Agora(client)
 
-        return Agora(connection)
+    @staticmethod
+    def set_default_client(client):
+        Agora.default_client = client
 
     def ping(self):
-
         url = '/api/v1/version/'
         response = self.http_client.get(url)
         if response.status_code == 200:
@@ -60,48 +51,41 @@ class Agora:
 
     # Folder
     def get_root_folder(self):
-        return Folder.get(0, self.http_client)
+        return Folder.get(0, http_client=self.http_client)
 
     def get_folder(self, folder_id):
-        return Folder.get(folder_id, self.http_client)
+        return Folder.get(folder_id, http_client=self.http_client)
 
+    def get_or_create_folder(self, folder_path, base_folder=None):
+
+        if base_folder is None:
+            base_folder = self.get_root_folder()
+
+        return base_folder.get_or_create(folder_path)
+
+    # Patient
     def get_patients(self, filters=None):
-        # Check the connection(Because afterwards we increase the timeout time for the query and we want to make sure 
-        # we have a connection)
-        # if not self.http_client.check_connection():
-        #     raise AgoraException('Could not connect to Agora: ')
-
-        return Patient.get_list(self.http_client, filters)
+        return Patient.get_list(filters, http_client=self.http_client)
 
     def get_patient(self, patient_id):
-        return Patient.get(patient_id, self.http_client)
+        return Patient.get(patient_id, http_client=self.http_client)
 
     # Exam
-    def get_exams(self, filters=None):
-        return Exam.get_list(self.http_client, filters)
+    def get_exam_list(self, filters=None):
+        return Exam.get_list(filters, http_client=self.http_client)
 
     def get_exam(self, exam_id):
-        return Exam.get(exam_id, self.http_client)
-
-    # def SetExamName(self, aExamID, aName):
-    #     if not isinstance( aExamID, int ):
-    #         raise AgoraException('The exam ID must be numeric')
-
-    #     vURL = self.mConnection.mURL + '/api/v1/exam/' + str(aExamID) + '/'
-    #     vData = {"name": aName}
-    #     Response = gtAgoraRequest.put(vURL, vData, self.mConnection)
-
-    #     if 'id' in Response:
-    #         return Exam(Response, self.mConnection)
-    #     else:
-    #         raise AgoraException('Could not set the exam name')
+        return Exam.get(exam_id, http_client=self.http_client)
 
     # Series
-    def get_series(self, filters=None):
-        return Series.get_list(self.http_client, filters)
+    def get_series_list(self, filters=None):
+        return Series.get_list(filters, http_client=self.http_client)
 
-    def get_serie(self, series_id):
-        return Series.get(series_id, self.http_client)
+    def get_series(self, series_id):
+        return Series.get(series_id, http_client=self.http_client)
+
+    def get_dataset(self, dataset_id):
+        return Dataset.get(dataset_id, http_client=self.http_client)
 
     # Search
     def search(self, aSearchString):
@@ -134,20 +118,41 @@ class Agora:
             raise AgoraException('Could not get the series')
 
     # Import a directory or a list of files with optional target files
-    def import_data(self, files, target_files=None, json_import_file=None, progress=False):
-        import_package = ImportPackage(self.http_client).create()
+    def import_data(self, files, target_folder=None, target_files=None, json_import_file=None, progress=False):
+        import_package = ImportPackage(http_client=self.http_client).create()
         
         if isinstance(files, str) and os.path.isdir(files):
-            return import_package.upload_directory(files, progress)
+            import_package.upload_directory(files,
+                                            target_folder_id=target_folder.id,
+                                            progress=progress)
         else:
-            return import_package.upload(files, target_files, json_import_file=json_import_file,
-                                        progress=progress)
+            import_package.upload(files,
+                                  target_folder_id=target_folder.id,
+                                  target_files=target_files,
+                                  json_import_file=json_import_file,
+                                  progress=progress)
+        return import_package
 
     def get_users(self):
-        return User.get_list(self.http_client)
+        return User.get_list(http_client=self.http_client)
 
     def get_current_user(self):
-        return User.get_current_user(self.http_client)
+        return User.get_current_user(http_client=self.http_client)
 
     def get_groups(self):
-        return Group.get_list(self.http_client)
+        return Group.get_list(http_client=self.http_client)
+
+    def get_api_key(self, create=False):
+        response = self.http_client.get('/api/v1/apikey/')
+
+        if response.status_code == 404 and create:
+            response = self.http_client.post('/api/v1/apikey/', json={})
+
+        if response.status_code == 200 or response.status_code == 201:
+            data = response.json()
+            return data
+
+        raise AgoraException('Could not get the API key')
+
+    def close(self):
+        pass

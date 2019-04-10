@@ -1,44 +1,4 @@
-from mock import patch
-
-from gtagora.http.client import Client
-from gtagora.http.connection import BasicConnection
-from gtagora.models.patient import Patient
-
-
-class FakeResponse:
-
-    def __init__(self, status_code=200, data={}):
-        self.status_code = status_code
-        self.data = data
-
-    def json(self):
-        return self.data
-
-
-class FakeClient(Client):
-    def __init__(self, connection, response=FakeResponse()):
-        super().__init__(connection)
-        self.response = response
-
-    def check_connection(self):
-        return True
-
-    def get(self, url, timeout=None, params=None, **kwargs):
-        return self.response
-
-
-class TestPatient:
-
-    def test_init(self):
-        connection = BasicConnection('http://localhost', 'test', 'test')
-        http_client = FakeClient(connection)
-        p = Patient(http_client)
-        assert p
-
-    def test_get(self):
-        connection = BasicConnection('http://localhost', 'test', 'test')
-
-        expected_patient = {
+patient = {
             "id": 1,
             "permissions": {
                 "write": True,
@@ -56,18 +16,8 @@ class TestPatient:
             "creator": None
         }
 
-        http_client = FakeClient(connection, response=FakeResponse(200, expected_patient))
-        p = Patient(http_client)
-        p = Patient.get(12, http_client)
 
-        assert isinstance(p, Patient)
-        assert p.id == 1
-        assert p.name == "Daniel Smith"
-
-    def test_get_list(self):
-        connection = BasicConnection('http://localhost', 'test', 'test')
-
-        get_data = {
+patient_list = {
             "count": 6,
             "limit": 10,
             "offset": 0,
@@ -127,24 +77,3 @@ class TestPatient:
                 },
             ]
         }
-
-        http_client = FakeClient(connection)
-
-        with patch.object(http_client, 'get') as mocked_get:
-            mocked_get.return_value = FakeResponse(200, get_data)
-
-            p = Patient(http_client)
-            patient_list = Patient.get_list(http_client)
-
-            assert len(patient_list) == 3
-            p = patient_list[0]
-            assert p.id == 1
-            assert p.name == "Daniel Smith"
-
-            p = patient_list[1]
-            assert p.id == 2
-            assert p.name == "Marcel Hoppe"
-
-            p = patient_list[2]
-            assert p.id == 3
-            assert p.name == "Stefan Meier"

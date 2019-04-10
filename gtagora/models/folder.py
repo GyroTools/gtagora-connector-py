@@ -9,9 +9,6 @@ from gtagora.models.series import Series
 class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
     BASE_URL = '/api/v1/folder/'
 
-    def __init__(self, http_client):
-        super().__init__(http_client)
-
     def get_items(self):
         items = []
 
@@ -20,22 +17,22 @@ class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
 
         for item in response.json():
             if 'content_object' in item and 'content_type' in item:
-                items.append(FolderItem.from_response(item, self.http_client))
+                items.append(FolderItem.from_response(item, http_client=self.http_client))
 
         return items
 
-    def is_folder(self, Name):
+    def is_folder(self, name):
         items = self.get_items()
         for item in items:
-            if isinstance(item.object, Folder) and item.object.name == Name:
+            if isinstance(item.object, Folder) and item.object.name == name:
                 return True
 
         return False
 
-    def get_folder(self, Name):
+    def get_folder(self, name):
         items = self.get_items()
         for item in items:
-            if isinstance(item.object, Folder) and item.object.name == Name:
+            if isinstance(item.object, Folder) and item.object.name == name:
                 return item.object
 
         return None
@@ -178,16 +175,28 @@ class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
         # files (e.g. a PAR/REC dataset without PAR/REC files)
         return self.http_client.upload_dataset(input_files, target_files, self.http_client, FolderID=self.id, type=type)
 
-    def create_folder(self, aName):
-        if aName and not isinstance(aName, str):
-            raise AgoraException('The name must be a string')
-
+    def create_folder(self, name):
         url = f'{self.BASE_URL}{self.id}/new/'
-        post_data = {"name": aName}
-        response = self.http_client.post(url, post_data)
+        post_data = {"name": name}
+        response = self.http_client.post(url, json=post_data)
         if response.status_code == 201:
             data = response.json()
             if 'content_object' in data:
-                return Folder(data['content_object'], self.http_client)
+                return Folder.from_response(data['content_object'], http_client=self.http_client)
 
-        raise AgoraException('Could not create the folder')
+        raise AgoraException(f'Could not create the folder {name}')
+
+    def get_or_create(self, path):
+
+        next_folder = self
+        for part in path.split('/'):
+            next_folder_exists = False
+            for folder in next_folder.get_folders():
+                if folder.name == part:
+                    next_folder = folder
+                    next_folder_exists = True
+                    break;
+            if not next_folder_exists:
+                next_folder = next_folder.create_folder(part)
+
+        return next_folder

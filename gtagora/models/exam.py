@@ -7,11 +7,17 @@ from gtagora.models.series import Series
 class Exam(LinkToFolderMixin, DownloadDatasetMixin, ShareMixin, BaseModel):
     BASE_URL = '/api/v1/exam/'
 
-    def __init__(self, http_client):
-        # if 'scanner_name' not in model_dict:
-        #     raise AgoraException('Could not initialize the Exam: scanner_name is missing')
+    def set_name(self, name):
+        url = self.BASE_URL + str(self.id) + '/'
+        data = {"name": name}
+        response = self.http_client.put(url, data)
 
-        super().__init__(http_client)
+        if response.status_code == 200:
+            data = response.json()
+            self._set_values(data)
+            return self
+        else:
+            raise AgoraException('Could not set the exam name {0}', response.status_code)
 
     def get_series(self, filters=None):
         if filters and not isinstance(filters, dict):
@@ -49,7 +55,7 @@ class Exam(LinkToFolderMixin, DownloadDatasetMixin, ShareMixin, BaseModel):
                     print('Warning: Could not get all files')
 
                 for curFile in results:
-                    files.append(Dataset(curFile, self.http_client))
+                    files.append(Dataset(curFile, http_client=self.http_client))
 
             return files
 
