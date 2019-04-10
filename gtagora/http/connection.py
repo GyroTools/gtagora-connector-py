@@ -42,6 +42,8 @@ class TokenConnection(Connection):
         return NoAuth()
 
     def login(self, client, user, password):
-        response = client.post("/api/v1/rest-auth", {'user': user, 'password': password})
-        if response.status == 200:
-            self.token = response.data['key']
+        response = client.post("/api/v1/rest-auth/login/", data={'username': user, 'password': password})
+        if response.status_code == 200:
+            self.token = response.json()['key']
+        else:
+            raise Exception(response.text)
