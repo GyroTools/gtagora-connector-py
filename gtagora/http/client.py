@@ -5,7 +5,6 @@ import uuid
 import requests
 
 from gtagora.exception import AgoraException
-from gtagora.models.dataset import Dataset, DatasetType
 
 
 class Client:
@@ -31,10 +30,16 @@ class Client:
         return requests.get(url, auth=auth, params=params, timeout=timeout,
                             verify=self.connection.verify_certificate, **kwargs)
 
-    def post(self, url, data, timeout=None, params=None, **kwargs):
+    def post(self, url, data=None, json=None, timeout=None, params=None, **kwargs):
         url = self.connection.url + url
         timeout = timeout if timeout else self.TIMEOUT
-        return requests.post(url, auth=self.connection.get_auth(), data=data, params=params, timeout=timeout,
+        return requests.post(url, auth=self.connection.get_auth(), data=data, json=json, params=params, timeout=timeout,
+                             verify=self.connection.verify_certificate, **kwargs)
+
+    def put(self, url, json, timeout=None, params=None, **kwargs):
+        url = self.connection.url + url
+        timeout = timeout if timeout else self.TIMEOUT
+        return requests.put(url, auth=self.connection.get_auth(), json=json, params=params, timeout=timeout,
                              verify=self.connection.verify_certificate, **kwargs)
 
     def delete(self, url, timeout=None, **kwargs):
@@ -50,7 +55,7 @@ class Client:
                 for chunk in response.iter_content(self.DOWNLOAD_CHUNK_SIZE):
                     file.write(chunk)
 
-    def upload(self, url, input_files, target_files, progress=False):
+    def upload(self, url, input_files, target_files=None, progress=False):
         if isinstance(input_files, str):
             files = []
             files.append(input_files)
@@ -76,28 +81,28 @@ class Client:
 
             uid = str(uuid.uuid4())
 
-            file = open(cur_file, mode='rb')
-            for chunk in range(0, nof_chunks):
-                if progress:
-                    self.print_progress(index, len(files), chunk, nof_chunks)
-                data = file.read(self.UPLOAD_CHUCK_SIZE)
-                files = {'file': (filename, data)}
-                form = {
-                    'description': '',
-                    'flowChunkNumber': str(chunk),
-                    'flowChunkSize': str(self.UPLOAD_CHUCK_SIZE),
-                    'flowCurrentChunkSize': str(len(data)),
-                    'flowTotalSize': str(filesize),
-                    'flowIdentifier': uid,
-                    'flowFilename': target_filename,
-                    'flowRelativePath': target_filename,
-                    'flowTotalChunks': str(nof_chunks)}
-                response = self.post(url, files=files, data=form)
-                if response.status_code != 200:
-                    raise AgoraException(f"Failed to upload chunk {chunk} of file {cur_file}. Status code: {response.status_code}")
-        
-        return True
+            with open(cur_file, mode='rb') as file:
+                for chunk in range(0, nof_chunks):
+                    if progress:
+                        self.print_progress(index, len(files), chunk, nof_chunks)
+                    data = file.read(self.UPLOAD_CHUCK_SIZE)
+                    files = {'file': (filename, data)}
+                    form = {
+                        'description': '',
+                        'flowChunkNumber': str(chunk),
+                        'flowChunkSize': str(self.UPLOAD_CHUCK_SIZE),
+                        'flowCurrentChunkSize': str(len(data)),
+                        'flowTotalSize': str(filesize),
+                        'flowIdentifier': uid,
+                        'flowFilename': target_filename,
+                        'flowRelativePath': target_filename,
+                        'flowTotalChunks': str(nof_chunks)}
+                    response = self.post(url, files=files, data=form)
+                    if response.status_code != 200:
+                        raise AgoraException(
+                            f"Failed to upload chunk {chunk} of file {cur_file}. Status code: {response.status_code}")
 
+        return True
 
     def print_progress(self, curFile, nof_file, chunk, nof_chunks):
         length = 40
