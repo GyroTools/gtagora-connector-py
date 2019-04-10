@@ -1,6 +1,6 @@
 from requests.auth import HTTPBasicAuth
 
-from gtagora.http.auth import ApiKeyAuth
+from gtagora.http.auth import ApiKeyAuth, TokenAuth, NoAuth
 
 
 class Connection:
@@ -13,7 +13,7 @@ class Connection:
 
 
 class BasicConnection(Connection):
-    def __init__(self, url, user=None, password=None):
+    def __init__(self, url, user, password):
         super().__init__(url)
         self.user = user
         self.password = password
@@ -23,9 +23,25 @@ class BasicConnection(Connection):
 
 
 class ApiKeyConnection(Connection):
-    def __init__(self, url, api_key=None):
+    def __init__(self, url, api_key):
         super().__init__(url)
         self.api_key = api_key
 
     def get_auth(self):
         return ApiKeyAuth(self.api_key)
+
+
+class TokenConnection(Connection):
+    def __init__(self, url):
+        super().__init__(url)
+        self.token = None
+
+    def get_auth(self):
+        if self.token:
+            return TokenAuth(self.token)
+        return NoAuth()
+
+    def login(self, client, user, password):
+        response = client.post("/api/v1/rest-auth", {'user': user, 'password': password})
+        if response.status == 200:
+            self.token = response.data['key']

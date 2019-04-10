@@ -2,7 +2,8 @@ import os
 
 from gtagora.exception import AgoraException
 from gtagora.http.client import Client
-from gtagora.http.connection import ApiKeyConnection, BasicConnection
+from gtagora.http.connection import ApiKeyConnection, TokenConnection
+from gtagora.models.dataset import Dataset
 from gtagora.models.exam import Exam
 from gtagora.models.series import Series
 from gtagora.models.folder import Folder
@@ -36,11 +37,14 @@ class Agora:
     def create(url, api_key=None, user=None, password=None):
         if api_key:
             connection = ApiKeyConnection(url, api_key=api_key)
+            client = Client(connection=connection)
         else:
-            connection = BasicConnection(url, user=user, password=password)
+            connection = TokenConnection(url)
+            client = Client(connection=connection)
+            connection.login(client, user, password)
 
-        request = Client(connection)
-        request.check_connection()
+        client.check_connection()
+        return Agora(client)
 
         return Agora(connection)
 
