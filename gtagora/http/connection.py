@@ -4,17 +4,17 @@ from gtagora.http.auth import ApiKeyAuth, TokenAuth, NoAuth
 
 
 class Connection:
-    def __init__(self, url):
+    def __init__(self, url, verify_certificate=True):
         self.url = url
-        self.verify_certificate = True
+        self.verify_certificate = verify_certificate
 
     def get_auth(self):
         raise NotImplementedError
 
 
 class BasicConnection(Connection):
-    def __init__(self, url, user, password):
-        super().__init__(url)
+    def __init__(self, url, user, password, verify_certificate=True):
+        super().__init__(url, verify_certificate=verify_certificate)
         self.user = user
         self.password = password
 
@@ -23,8 +23,8 @@ class BasicConnection(Connection):
 
 
 class ApiKeyConnection(Connection):
-    def __init__(self, url, api_key):
-        super().__init__(url)
+    def __init__(self, url, api_key, verify_certificate=True):
+        super().__init__(url, verify_certificate=verify_certificate)
         self.api_key = api_key
 
     def get_auth(self):
@@ -32,8 +32,8 @@ class ApiKeyConnection(Connection):
 
 
 class TokenConnection(Connection):
-    def __init__(self, url):
-        super().__init__(url)
+    def __init__(self, url, verify_certificate=True):
+        super().__init__(url, verify_certificate=verify_certificate)
         self.token = None
 
     def get_auth(self):

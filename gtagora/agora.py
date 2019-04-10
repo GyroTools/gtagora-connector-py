@@ -1,4 +1,6 @@
 import os
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 from gtagora.exception import AgoraException
 from gtagora.http.client import Client
@@ -27,10 +29,10 @@ class Agora:
     @staticmethod
     def create(url, api_key=None, user=None, password=None):
         if api_key:
-            connection = ApiKeyConnection(url, api_key=api_key)
+            connection = ApiKeyConnection(url, api_key=api_key, verify_certificate=Agora.verify_certificate)
             client = Client(connection=connection)
         else:
-            connection = TokenConnection(url)
+            connection = TokenConnection(url, verify_certificate=Agora.verify_certificate)
             client = Client(connection=connection)
             connection.login(client, user, password)
 
