@@ -38,6 +38,26 @@ class BaseModel:
         url = cls.BASE_URL
         return instance._get_object_list(url, filters, cls)
 
+    @classmethod
+    def get_list_from_data(cls, data):
+        object_list = []
+
+        if 'results' in data and 'count' in data:
+            results = data['results']
+            if data['count'] == 0:
+                return object_list
+            if data['count'] != len(results):
+                print('Warning: Could not get all series')
+
+            for r in results:
+                object_list.append(cls.from_response(r))
+        elif isinstance(data, list):
+            object_list = [cls.from_response(d) for d in data]
+
+        return object_list
+
+        raise AgoraException(f'Could not get the {cls.__name__} list')
+
     def delete(self):
         url = f'{self.BASE_URL}{self.id}/'
         response = self.http_client.delete(url)
@@ -77,6 +97,8 @@ class BaseModel:
 
                 for r in results:
                     object_list.append(object_class.from_response(r))
+            elif isinstance(data, list):
+                object_list = [object_class.from_response(d) for d in data ]
 
             return object_list
 

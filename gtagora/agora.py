@@ -1,5 +1,7 @@
+import json
 import os
 import urllib3
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 from gtagora.exception import AgoraException
@@ -13,6 +15,7 @@ from gtagora.models.patient import Patient
 from gtagora.models.user import User
 from gtagora.models.group import Group
 from gtagora.models.import_package import ImportPackage
+from gtagora.models.task import Task
 from gtagora.utils import to_path_array
 
 
@@ -89,6 +92,38 @@ class Agora:
 
     def get_dataset(self, dataset_id):
         return Dataset.get(dataset_id, http_client=self.http_client)
+
+    # Tasks
+    def get_tasks(self):
+        return Task.get_list(None, http_client=self.http_client)
+
+    def get_task(self, task_id):
+        return Task.get(task_id, http_client=self.http_client)
+
+    def export_tasks(self, file):
+        url = Task.BASE_URL
+        response = self.http_client.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            for d in data:
+                d.pop('context_help', None)
+
+            with open(file, 'w') as outfile:
+                json.dump(data, outfile)
+
+    def import_tasks(self, file):
+        tasks = self.load_tasks(file)
+        for task in tasks:
+            try:
+                task.create()
+            except AgoraException as e:
+                print(f'Warning: Could not import the task {task.name}: {str(e)}')
+
+    def load_tasks(self, file):
+        with open(file) as json_file:
+            data = json.load(json_file)
+            return Task.get_list_from_data(data)
+
 
     # Search
     def search(self, aSearchString):
