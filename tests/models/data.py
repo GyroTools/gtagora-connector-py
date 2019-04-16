@@ -77,3 +77,36 @@ patient_list = {
                 },
             ]
         }
+
+task = {
+        "id": 2,
+        "inputs": [
+            {
+                "id": 2,
+                "name": "input",
+                "key": "in1",
+                "description": "",
+                "required": True,
+                "order": 0,
+                "type": 3,
+                "data_set_type": 100000,
+                "filename_regex": None,
+                "min": None,
+                "max": None,
+                "select_values": None
+            }
+        ],
+        "outputs": [],
+        "members": [],
+        "name": "notepad",
+        "container_name": "",
+        "container_options": {
+            "mount_volumes": []
+        },
+        "execute_template": "notepad {{ inputs.in1.file.path }}",
+        "execute_version": None,
+        "success_exit_code": 0,
+        "parse_output_for_error": "",
+        "owner": 1,
+        "host": None
+    }
