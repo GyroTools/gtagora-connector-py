@@ -4,6 +4,7 @@ from gtagora.models.dataset import Dataset
 from gtagora.models.exam import Exam
 from gtagora.models.folder_item import FolderItem
 from gtagora.models.series import Series
+from gtagora.utils import _import_data
 
 
 class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
@@ -151,23 +152,8 @@ class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
 
         return vDownloadedFiles
 
-    def upload(self, input_files, target_files=None):
-        if (target_files and len(input_files) != len(target_files)):
-            raise AgoraException("The Inputfiles and TargetFiles must have the same length")
-
-        if isinstance(input_files, str):
-            files = []
-            files.append(input_files)
-        else:
-            files = input_files
-
-        datasets = []
-        for index, current_file in enumerate(files):
-            current_target_file = None
-            if (target_files):
-                current_target_file = target_files[index]
-            datasets.append(Dataset.upload_files(self.http_client, current_file, current_target_file, folder_id=self.id))
-        return datasets
+    def upload(self, files, target_files=None, wait=True, progress=False):
+        return _import_data(self.http_client, files, self, target_files, None, wait, progress)
 
     def upload_dataset(self, input_files, type, target_files=None):
         # This function creates a dataset of a given type all files given as input will be added to one dataset.

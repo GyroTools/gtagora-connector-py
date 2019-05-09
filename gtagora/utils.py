@@ -2,7 +2,6 @@ import os
 import zipfile
 from pathlib import Path
 
-
 def to_path_array(files):
     try:
         if isinstance(files, str):
@@ -41,6 +40,52 @@ def get_file_info(path):
             total_size += os.path.getsize(fp)
         nof_files += len(filenames)
     return nof_files, total_size
+
+
+def _import_data(http_client, files, target_folder=None, target_files=None, json_import_file=None, wait=True,
+                progress=False):
+
+    from gtagora.models.import_package import ImportPackage
+    """
+    Import a directory or a list of files with optional target file names.
+
+    The target folder is optional. If
+    target_folder is None and data is uploaded that can't be trated as an exam or series a new folder in the
+    root will be created.
+
+    :param files: One directroy or multiple files as string or Path
+    :param target_folder: The target folder
+    :param wait: Wait until the upload and import process ha sbeen finished
+    :returns: The import package. Can be used to watch the upload
+    """
+    files = to_path_array(files)
+
+    if not files:
+        return None
+
+    for f in files:
+        if not f.exists():
+            raise FileNotFoundError(f.as_posix())
+
+    import_package = ImportPackage(http_client=http_client).create()
+
+    if len(files) == 1 and files[0].is_dir():
+        import_package.upload_directory(files[0],
+                                        target_folder_id=target_folder.id,
+                                        wait=wait,
+                                        progress=progress)
+    else:
+        if not all([f.is_file() for f in files]):
+            raise Exception('''Can not upload a list of files and directories. Only one directroy or multiple 
+files are supported''')
+
+        import_package.upload(files,
+                              target_folder_id=target_folder.id,
+                              target_files=target_files,
+                              json_import_file=json_import_file,
+                              wait=wait,
+                              progress=progress)
+    return import_package
 
 
 class ZipUploadFiles:

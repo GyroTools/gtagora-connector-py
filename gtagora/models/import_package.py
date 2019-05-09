@@ -108,3 +108,4 @@ class ImportPackage(BaseModel):
 
     def _check_zip_option(self, input_files):
         return len(input_files) > 5
+

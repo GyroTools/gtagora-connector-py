@@ -138,3 +138,23 @@ class ShareMixin:
         url = f'{self.BASE_URL}/{self.id}/shares/'
         data = [{"user": user_id, "group": group_id, "level": share_level}]
         response = self.http_client.post(url, json=data)
+
+
+class SearchMixin:
+
+    @classmethod
+    def search(cls, search_string, http_client=None):
+        instance = cls(http_client=http_client)
+
+        if not isinstance(search_string, str):
+            raise AgoraException('The search term must be a string')
+
+        url = f'{instance.BASE_URL}search/?q=' + search_string + '&limit=10000000000'
+        response = http_client.get(url)
+        if response.status_code == 200:
+            list = instance.get_list_from_data(response.json())
+            return list
+        else:
+            raise AgoraException(f'Search unsuccessful: {response.text}')
+
+        return []

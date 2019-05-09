@@ -1,4 +1,5 @@
 from gtagora import Agora
+from gtagora.models.series import Series
 from gtagora.models.task import Task
 from tests.models import data
 from tests.helper import FakeResponse

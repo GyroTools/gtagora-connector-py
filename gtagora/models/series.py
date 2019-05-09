@@ -1,9 +1,9 @@
 from gtagora.exception import AgoraException
-from gtagora.models.base import LinkToFolderMixin, BaseModel, DownloadDatasetMixin
+from gtagora.models.base import LinkToFolderMixin, BaseModel, DownloadDatasetMixin, SearchMixin
 from gtagora.models.dataset import Dataset
 
 
-class Series(LinkToFolderMixin, DownloadDatasetMixin, BaseModel):
+class Series(LinkToFolderMixin, DownloadDatasetMixin, BaseModel, SearchMixin):
     BASE_URL = '/api/v1/serie/'
 
     def get_datasets(self, filters=None):

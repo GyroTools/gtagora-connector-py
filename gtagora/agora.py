@@ -2,6 +2,9 @@ import json
 import os
 import urllib3
 
+from gtagora.models.trash import Trash
+from gtagora.utils import _import_data
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 from gtagora.exception import AgoraException
@@ -14,9 +17,7 @@ from gtagora.models.folder import Folder
 from gtagora.models.patient import Patient
 from gtagora.models.user import User
 from gtagora.models.group import Group
-from gtagora.models.import_package import ImportPackage
 from gtagora.models.task import Task
-from gtagora.utils import to_path_array
 
 
 class Agora:
@@ -100,6 +101,12 @@ class Agora:
     def get_task(self, task_id):
         return Task.get(task_id, http_client=self.http_client)
 
+    def delete_task(self, task_id):
+        url = f'{Task.BASE_URL}{task_id}/'
+        response = self.http_client.delete(url, timeout=60)
+        if response.status_code != 204:
+            raise AgoraException('Cannot delete the task: ' + response.text)
+
     def export_tasks(self, file):
         url = Task.BASE_URL
         response = self.http_client.get(url)
@@ -126,79 +133,15 @@ class Agora:
 
 
     # Search
-    def search(self, aSearchString):
-        Series = []
+    def search_series(self, aSearchString):
+        return Series.search(aSearchString, self.http_client)
 
-        if aSearchString and not isinstance(aSearchString, str):
-            raise AgoraException('The search string must be a string')
-
-        # Check the connection(Because afterwards we increase the timeout time for the query and we want to make sure we have a connection)
-        IsConnection, ErrorMessage = gtAgoraRequest.check_connection(self.connection.mURL, self.connection)
-        if not IsConnection:
-            raise AgoraException('Could not connect to Agora: ' + ErrorMessage)
-
-        vURL = self.connection.mURL + '/api/v1/serie/search/?q=' + aSearchString + '&limit=10000000000'
-        Response = gtAgoraRequest.get(vURL, self.connection,
-                                      gtAgora.mLongTimeout)
-
-        if 'results' in Response and 'count' in Response:
-            Results = Response['results']
-            if Response['count'] == 0:
-                return Series
-            if Response['count'] != len(Results):
-                print('Warning: Could not get all series')
-
-            for curSeries in Results:
-                Series.append(gtAgoraSeries(curSeries, self.connection))
-
-            return Series
-        else:
-            raise AgoraException('Could not get the series')
-
-    #
+    # Import
     def import_data(self, files, target_folder=None, target_files=None, json_import_file=None, wait=True,
                     progress=False):
-        """
-        Import a directory or a list of files with optional target file names.
+        return _import_data(self.http_client, files, target_folder, target_files, json_import_file, wait, progress)
 
-        The target folder is optional. If
-        target_folder is None and data is uploaded that can't be trated as an exam or series a new folder in the
-        root will be created.
-
-        :param files: One directroy or multiple files as string or Path
-        :param target_folder: The target folder
-        :param wait: Wait until the upload and import process ha sbeen finished
-        :returns: The import package. Can be used to watch the upload
-        """
-        files = to_path_array(files)
-
-        if not files:
-            return None
-
-        for f in files:
-            if not f.exists():
-                raise FileNotFoundError(f.as_posix())
-
-        import_package = ImportPackage(http_client=self.http_client).create()
-        
-        if len(files) == 1 and files[0].is_dir():
-            import_package.upload_directory(files[0],
-                                            target_folder_id=target_folder.id,
-                                            wait=wait,
-                                            progress=progress)
-        else:
-            if not all([f.is_file() for f in files]):
-                raise Exception('''Can not upload a list of files and directories. Only one directroy or multiple 
-files are supported''')
-
-            import_package.upload(files,
-                                  target_folder_id=target_folder.id,
-                                  target_files=target_files,
-                                  json_import_file=json_import_file,
-                                  wait=wait,
-                                  progress=progress)
-        return import_package
-
+    # User
     def get_users(self):
         return User.get_list(http_client=self.http_client)
 
@@ -219,6 +162,13 @@ files are supported''')
             return data
 
         raise AgoraException('Could not get the API key')
+
+
+    # Trash
+    def empty_trash(self):
+        trash = Trash()
+        trash.empty()
+
 
     def close(self):
         pass
