@@ -9,6 +9,7 @@ from gtagora.exception import AgoraException
 
 class Client:
     TIMEOUT = 20
+    UPLOAD_TIMEOUT = 60
     UPLOAD_CHUCK_SIZE = 100 * 1024 * 1024  # 100MB
     DOWNLOAD_CHUNK_SIZE = 1024 * 1024  # 1MB
 
@@ -40,7 +41,7 @@ class Client:
         url = self.connection.url + url
         timeout = timeout if timeout else self.TIMEOUT
         return requests.put(url, auth=self.connection.get_auth(), json=json, params=params, timeout=timeout,
-                             verify=self.connection.verify_certificate, **kwargs)
+                            verify=self.connection.verify_certificate, **kwargs)
 
     def delete(self, url, timeout=None, **kwargs):
         url = self.connection.url + url
@@ -56,6 +57,13 @@ class Client:
                     file.write(chunk)
 
     def upload(self, url, input_files, target_files=None, progress=False):
+        response = self.get('/api/v1/version/')
+        if response.status_code == 200:
+            data = response.json()
+            print(f"Ping {data}")
+        else:
+            print("Ping failed")
+
         if isinstance(input_files, str):
             files = []
             files.append(input_files)
@@ -69,6 +77,8 @@ class Client:
             raise AgoraException('target_files list too short.')
 
         for index, cur_file in enumerate(files):
+            print(f"Upload file: {cur_file} > {url}")
+
             if not os.path.isfile(cur_file):
                 raise AgoraException('Could not open file ' + cur_file)
 
@@ -97,11 +107,12 @@ class Client:
                         'flowFilename': target_filename,
                         'flowRelativePath': target_filename,
                         'flowTotalChunks': str(nof_chunks)}
-                    response = self.post(url, files=files, data=form)
+                    response = self.post(url, files=files, data=form, timeout=self.UPLOAD_TIMEOUT)
                     if response.status_code != 200:
                         raise AgoraException(
                             f"Failed to upload chunk {chunk} of file {cur_file}. Status code: {response.status_code}")
 
+        print(f"Upload done")
         return True
 
     def print_progress(self, curFile, nof_file, chunk, nof_chunks):

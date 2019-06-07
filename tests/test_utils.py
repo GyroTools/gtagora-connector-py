@@ -1,29 +1,7 @@
 import zipfile
 from pathlib import Path
 
-import pytest
-
-from gtagora.utils import get_file_info, ZipUploadFiles, to_path_array
-
-
-def test_to_path_array():
-    expected_output = [Path('files/test.xyz')]
-    assert to_path_array('files/test.xyz') == expected_output
-    assert to_path_array(['files/test.xyz']) == expected_output
-    assert to_path_array(Path('files/test.xyz')) == expected_output
-    assert to_path_array(expected_output) == expected_output
-
-    expected_output = [Path('files/test.xyz'), Path('files/test.rrr')]
-    assert to_path_array(['files/test.xyz', 'files/test.rrr']) == expected_output
-    assert to_path_array(expected_output) == expected_output
-
-    assert to_path_array([]) == []
-
-    with pytest.raises(TypeError):
-        assert to_path_array(12)
-
-    with pytest.raises(TypeError):
-        assert to_path_array(None)
+from gtagora.utils import get_file_info, ZipUploadFiles
 
 
 def test_get_file_info(tempdir_with_dummy_files):
@@ -40,33 +18,16 @@ def test_get_file_info(tempdir_with_dummy_files):
 
 class TestZipUploadFiles:
 
-    def _prepare_input_files_1(self, temp_path):
-        input_files = []
-        target_files = []
+    def test_create_zip_1(self, zip_upload_files_test_data):
+        test_data = zip_upload_files_test_data
+        input_files = test_data.input_files
+        target_files = test_data.target_files
+        upload_path = test_data.upload_path
 
-        for idx in range(0, 5):
-            for subdir_idx in range(0, 5):
-                p = temp_path / f'{subdir_idx}'
-                p.mkdir(parents=True, exist_ok=True)
-                file = p / f'test_{idx}.xyz'
-                with open(file, 'wb') as f:
-                    f.write(b'0123456789' * 1024 * (idx + 1) * (subdir_idx + 1))
-                    input_files.append(file.as_posix())
-                    target_files.append(file.relative_to(temp_path).as_posix())
-
-        return input_files, target_files
-
-    def test_create_zip_1(self, tmpdir):
-        temp_path = Path(tmpdir)
-
-        upload_dir = temp_path / 'uploads'
-        upload_dir.mkdir(parents=True, exist_ok=True)
-
-        input_files, target_files = self._prepare_input_files_1(temp_path)
         zip_uploads = ZipUploadFiles(input_files, target_files)
-        final_input_files, final_target_files = zip_uploads.create_zip(upload_dir.as_posix())
+        final_input_files, final_target_files = zip_uploads.create_zip(upload_path)
 
-        assert final_input_files == [Path(upload_dir, 'upload_0.agora_upload').as_posix()]
+        assert final_input_files == [Path(upload_path, 'upload_0.agora_upload')]
         assert final_target_files == ['upload_0.agora_upload']
 
         zip_file_path = final_input_files[0]
@@ -74,30 +35,30 @@ class TestZipUploadFiles:
             assert len(z.infolist()) == 25
             assert [info.filename for info in z.infolist()] == target_files
 
-    def test_create_zip_2(self, tmpdir):
-        temp_path = Path(tmpdir)
-
-        upload_dir = temp_path / 'uploads'
-        upload_dir.mkdir(parents=True, exist_ok=True)
+    def test_create_zip_2(self, zip_upload_files_test_data):
+        test_data = zip_upload_files_test_data
+        temp_path = test_data.temp_path
+        input_files = test_data.input_files
+        target_files = test_data.target_files
+        upload_path = test_data.upload_path
 
         ZipUploadFiles.MAX_FILE_LIMIT = 100*1024  # Zip all files smaller than 100 KB
 
-        input_files, target_files = self._prepare_input_files_1(temp_path)
         zip_uploads = ZipUploadFiles(input_files, target_files)
-        final_input_files, final_target_files = zip_uploads.create_zip(upload_dir.as_posix())
+        final_input_files, final_target_files = zip_uploads.create_zip(upload_path)
 
         expected_input_files = sorted([
-            Path(temp_path, '1/test_4.xyz').as_posix(),
-            Path(temp_path, '2/test_3.xyz').as_posix(),
-            Path(temp_path, '2/test_4.xyz').as_posix(),
-            Path(temp_path, '3/test_2.xyz').as_posix(),
-            Path(temp_path, '3/test_3.xyz').as_posix(),
-            Path(temp_path, '3/test_4.xyz').as_posix(),
-            Path(temp_path, '4/test_1.xyz').as_posix(),
-            Path(temp_path, '4/test_2.xyz').as_posix(),
-            Path(temp_path, '4/test_3.xyz').as_posix(),
-            Path(temp_path, '4/test_4.xyz').as_posix(),
-            Path(upload_dir, 'upload_0.agora_upload').as_posix(),
+            Path(temp_path, '1/test_4.xyz'),
+            Path(temp_path, '2/test_3.xyz'),
+            Path(temp_path, '2/test_4.xyz'),
+            Path(temp_path, '3/test_2.xyz'),
+            Path(temp_path, '3/test_3.xyz'),
+            Path(temp_path, '3/test_4.xyz'),
+            Path(temp_path, '4/test_1.xyz'),
+            Path(temp_path, '4/test_2.xyz'),
+            Path(temp_path, '4/test_3.xyz'),
+            Path(temp_path, '4/test_4.xyz'),
+            Path(upload_path, 'upload_0.agora_upload'),
         ])
 
         expected_target_files = sorted([
@@ -138,5 +99,3 @@ class TestZipUploadFiles:
         zip_file_path = final_input_files[0]
         with zipfile.ZipFile(zip_file_path, 'r') as z:
             assert sorted([info.filename for info in z.infolist()]) == expected_zipped_files
-
-

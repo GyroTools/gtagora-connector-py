@@ -2,6 +2,9 @@ from gtagora.exception import AgoraException
 from gtagora.models.base import BaseModel, LinkToFolderMixin, ShareMixin, DownloadDatasetMixin
 from gtagora.models.dataset import Dataset
 from gtagora.models.series import Series
+from gtagora.utils import remove_illegal_chars
+
+from pathlib import Path
 
 
 class Exam(LinkToFolderMixin, DownloadDatasetMixin, ShareMixin, BaseModel):
@@ -79,6 +82,17 @@ class Exam(LinkToFolderMixin, DownloadDatasetMixin, ShareMixin, BaseModel):
             datasets.append(self.http_client.upload_dataset(currrent_file, cur_target_file, self.http_client,
                                                             exam_id=self.id))
         return datasets
+
+    def download(self, target_path: Path):
+        for series in self.get_series():
+            for dataset in series.get_datasets():
+                final_path = target_path / remove_illegal_chars(self.name) / remove_illegal_chars(series.name)
+                final_path.mkdir(parents=True, exist_ok=True)
+                dataset.download(final_path)
+        for dataset in self.get_files():
+            final_path = target_path / self.name
+            final_path.mkdir(parents=True, exist_ok=True)
+            dataset.download(final_path)
 
     def upload_dataset(self, input_files, dataset_type, target_files=None):
         # This function creates a dataset of a given type all files given as input will be added to one dataset.
