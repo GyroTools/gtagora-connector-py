@@ -71,7 +71,7 @@ def _import_data(http_client, files, target_folder=None, target_files=None, json
 
     if len(files) == 1 and files[0].is_dir():
         import_package.upload_directory(files[0],
-                                        target_folder_id=target_folder.id,
+                                        target_folder_id=target_folder.id if target_folder else None,
                                         wait=wait,
                                         progress=progress)
     else:
@@ -80,7 +80,7 @@ def _import_data(http_client, files, target_folder=None, target_files=None, json
 files are supported''')
 
         import_package.upload(files,
-                              target_folder_id=target_folder.id,
+                              target_folder_id=target_folder.id if target_folder else None,
                               target_files=target_files,
                               json_import_file=json_import_file,
                               wait=wait,
