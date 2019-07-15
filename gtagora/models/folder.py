@@ -4,6 +4,7 @@ from gtagora.models.dataset import Dataset
 from gtagora.models.datafile import Datafile
 from gtagora.models.exam import Exam
 from gtagora.models.folder_item import FolderItem
+from gtagora.models.import_package import import_data
 from gtagora.models.series import Series
 from gtagora.utils import remove_illegal_chars
 
@@ -119,8 +120,12 @@ class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
 
         return downloaded_files
 
-    def upload(self, files, target_files=None, wait=True, progress=False):
-        return _import_data(self.http_client, files, self, target_files, None, wait, progress)
+    def upload(self, paths: List[Path], wait=True, progress=False):
+        for path in paths:
+            if not path.exists():
+                raise FileNotFoundError(path.as_posix())
+
+        return import_data(self.http_client, paths=paths, target_folder_id=self.id, wait=wait, progress=progress)
 
     def create_folder(self, name):
         url = f'{self.BASE_URL}{self.id}/new/'

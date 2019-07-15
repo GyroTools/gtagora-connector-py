@@ -140,7 +140,7 @@ def import_data(http_client, paths: List[Path], target_folder_id: int = None, js
 
     import_package.upload(paths,
                           target_folder_id=target_folder_id,
-                          json_import_file=json_import_file.name,
+                          json_import_file=json_import_file.name if json_import_file else None,
                           wait=wait,
                           progress=progress)
     return import_package
