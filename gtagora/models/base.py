@@ -1,10 +1,12 @@
 from gtagora.exception import AgoraException
 from gtagora.models.share import ShareLevel
 
+
 def get_client(http_client):
     from gtagora import Agora
 
     return http_client if http_client else Agora.default_client
+
 
 class BaseModel:
 
@@ -72,9 +74,7 @@ class BaseModel:
 
     def _get_object(self, id):
         url = f'{self.BASE_URL}{id}/'
-        print(url)
         response = self.http_client.get(url)
-        print(response.text)
         if response.status_code == 200:
             data = response.json()
             return self.__class__.from_response(data, http_client=self.http_client)
@@ -98,7 +98,7 @@ class BaseModel:
                 for r in results:
                     object_list.append(object_class.from_response(r))
             elif isinstance(data, list):
-                object_list = [object_class.from_response(d) for d in data ]
+                object_list = [object_class.from_response(d) for d in data]
 
             return object_list
 
@@ -109,11 +109,7 @@ class DownloadDatasetMixin:
 
     def download(self, filename):
         datasets = self.get_datasets()
-        downloaded_files = []
-        for dataset in datasets:
-            downloaded_files = downloaded_files + dataset.download(filename)
-
-        return downloaded_files
+        return [dataset.download(filename) for dataset in datasets]
 
 
 class LinkToFolderMixin:
@@ -138,6 +134,7 @@ class ShareMixin:
         url = f'{self.BASE_URL}/{self.id}/shares/'
         data = [{"user": user_id, "group": group_id, "level": share_level}]
         response = self.http_client.post(url, json=data)
+        return response
 
 
 class SearchMixin:

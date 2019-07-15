@@ -1,10 +1,15 @@
 from gtagora.exception import AgoraException
 from gtagora.models.base import LinkToFolderMixin, ShareMixin, BaseModel
 from gtagora.models.dataset import Dataset
+from gtagora.models.datafile import Datafile
 from gtagora.models.exam import Exam
 from gtagora.models.folder_item import FolderItem
 from gtagora.models.series import Series
-from gtagora.utils import _import_data
+from gtagora.utils import remove_illegal_chars
+
+from pathlib import Path
+from typing import List
+from functools import partial
 
 
 class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
@@ -72,94 +77,50 @@ class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
         return series
 
     def get_datasets(self, recursive=False):
-        Datasets = []
+        datasets = []
         items = self.get_items()
         for item in items:
             if isinstance(item.object, Dataset):
-                Datasets.append(item.object)
+                datasets.append(item.object)
             if recursive and isinstance(item, Folder):
-                Datasets = Datasets + item.get_series(recursive)
+                datasets.extend(item.get_series(recursive))
 
-        return Datasets
+        return datasets
 
-    def download(self, target_path=None, recursive=None):
-        downloaded_files = []
+    def download(self, target_path: Path, recursive=False) -> List[Datafile]:
+
         # Get all Exams in the current folder and download them
-        exams = self.get_exams()
-        for exam in exams:
-            downloaded_files = downloaded_files + exam.Download(target_path)
-
-        # Get all Series in the current folder and download them
-        series = self.get_series()
-        for s in series:
-            downloaded_files = downloaded_files + s.Download(target_path)
-
-        # Get all Datasets in the current folder and download them
-        datasets = self.get_datasets()
-        for dataset in datasets:
-            downloaded_files = downloaded_files + dataset.download(target_path)
-
-        # Download all subfolders as well when the recursive option is true
-        if recursive:
-            Subfolder = self.get_folders()
-            for curSubfolder in Subfolder:
-                downloaded_files = downloaded_files + curSubfolder.Download(target_path, recursive)
+        downloaded_files = self.download_exams(target_path, recursive=recursive)
+        downloaded_files.extend(self.download_series(target_path, recursive=recursive))
+        downloaded_files.extend(self.download_datasets(target_path, recursive=recursive))
 
         return downloaded_files
 
-    def download_exams(self, aTargetPath=None, recursive=None):
-        vDownloadedFiles = []
-        # Get all Exams in the current folder and download them
-        Exams = self.get_exams()
-        for curExam in Exams:
-            vDownloadedFiles = vDownloadedFiles + curExam.Download(aTargetPath)
+    def download_exams(self, target_path: Path, recursive=False):
+        exams = self.get_exams()
+        return self._download_objects(exams, target_path, Folder.download_exams, recursive)
+
+    def download_series(self, target_path: Path, recursive=False):
+        exams = self.get_series()
+        return self._download_objects(exams, target_path, Folder.download_series, recursive)
+
+    def download_datasets(self, target_path: Path, recursive=False):
+        exams = self.get_datasets()
+        return self._download_objects(exams, target_path, Folder.download_datasets, recursive)
+
+    def _download_objects(self, objects, target_path: Path, download_fct, recursive=False):
+        downloaded_files = [obj.download(target_path) for obj in objects]
 
         # Download all exams in subfolders as well when the recursive option is true
         if recursive:
-            Subfolder = self.get_folders()
-            for curSubfolder in Subfolder:
-                vDownloadedFiles = vDownloadedFiles + curSubfolder.DownloadExams(aTargetPath, recursive)
+            for folder in self.get_folders():
+                downloaded_files.extend(partial(download_fct, folder)(
+                    target_path / remove_illegal_chars(folder.name), recursive))
 
-        return vDownloadedFiles
-
-    def download_series(self, aTargetPath=None, recursive=None):
-        vDownloadedFiles = []
-        # Get all Series in the current folder and download them
-        Series = self.get_series()
-        for curSeries in Series:
-            vDownloadedFiles = vDownloadedFiles + curSeries.Download(aTargetPath)
-
-        # Download all series in subfolders as well when the recursive option is true
-        if recursive:
-            Subfolder = self.get_folders()
-            for curSubfolder in Subfolder:
-                vDownloadedFiles = vDownloadedFiles + curSubfolder.DownloadSeries(aTargetPath, recursive)
-
-        return vDownloadedFiles
-
-    def download_datasets(self, aTargetPath=None, recursive=None):
-        vDownloadedFiles = []
-        # Get all Datasets in the current folder and download them
-        Datasets = self.get_datasets()
-        for curDatasets in Datasets:
-            vDownloadedFiles = vDownloadedFiles + curDatasets.Download(aTargetPath)
-
-        # Download all datasets in subfolders as well when the recursive option is true
-        if recursive:
-            Subfolder = self.get_folders()
-            for curSubfolder in Subfolder:
-                vDownloadedFiles = vDownloadedFiles + curSubfolder.DownloadSeries(aTargetPath, recursive)
-
-        return vDownloadedFiles
+        return downloaded_files
 
     def upload(self, files, target_files=None, wait=True, progress=False):
         return _import_data(self.http_client, files, self, target_files, None, wait, progress)
-
-    def upload_dataset(self, input_files, type, target_files=None):
-        # This function creates a dataset of a given type all files given as input will be added to one dataset.
-        # Please note: At the moment there is no consistency check. We could create datasets with improper
-        # files (e.g. a PAR/REC dataset without PAR/REC files)
-        return self.http_client.upload_dataset(input_files, target_files, self.http_client, FolderID=self.id, type=type)
 
     def create_folder(self, name):
         url = f'{self.BASE_URL}{self.id}/new/'
@@ -172,16 +133,16 @@ class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
 
         raise AgoraException(f'Could not create the folder {name}')
 
-    def get_or_create(self, path):
+    def get_or_create(self, path: Path):
 
         next_folder = self
-        for part in path.split('/'):
+        for part in path.parts:
             next_folder_exists = False
             for folder in next_folder.get_folders():
                 if folder.name == part:
                     next_folder = folder
                     next_folder_exists = True
-                    break;
+                    break
             if not next_folder_exists:
                 next_folder = next_folder.create_folder(part)
 
