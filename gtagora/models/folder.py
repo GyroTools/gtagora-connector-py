@@ -124,7 +124,6 @@ class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
         for path in paths:
             if not path.exists():
                 raise FileNotFoundError(path.as_posix())
-
         return import_data(self.http_client, paths=paths, target_folder_id=self.id, wait=wait, progress=progress)
 
     def create_folder(self, name):
@@ -139,7 +138,6 @@ class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
         raise AgoraException(f'Could not create the folder {name}')
 
     def get_or_create(self, path: Path):
-
         next_folder = self
         for part in path.parts:
             next_folder_exists = False
@@ -152,3 +150,8 @@ class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
                 next_folder = next_folder.create_folder(part)
 
         return next_folder
+
+    def delete_item(self, ids):
+        for id in ids:
+            url = f'/api/v1/folderitem/delete_ids/'
+            response = self.http_client.post(url, json={"ids": ids}, timeout=60)
