@@ -36,5 +36,20 @@ class Series(LinkToFolderMixin, DownloadDatasetMixin, BaseModel, SearchMixin):
         # files (e.g. a PAR/REC dataset without PAR/REC files)
         return self.http_client.upload_dataset(input_files, target_files, serie_id=self.id, dataset_type=dataset_type)
 
+    def get_parameter(self, name):
+        datasets = self.get_datasets()
+        for dataset in datasets:
+            par = dataset.get_parameter(name)
+            if par:
+                return par
+
+    def search_parameter(self, search_string):
+        datasets = self.get_datasets()
+        pars = []
+        for dataset in datasets:
+            cur_pars = dataset.search_parameter(search_string)
+            pars.extend(cur_pars)
+        return pars
+
     def __str__(self):
         return f"Series: {self.name}"

@@ -46,41 +46,14 @@ class Dataset(LinkToFolderMixin, BaseModel):
             downloaded_files.append(datafile.download(filename))
         return downloaded_files
 
-    def get_parameter(self, filter=None):
+    def get_parameter(self, name):
+        url = f'{self.BASE_URL}{self.id}/parameter/?description__name={name}&limit=10000000000'
+        pars = self._get_object_list(url, None, Parameter)
+        return pars[0] if pars else None
 
-        if filter and not isinstance(filter, str):
-            raise AgoraException('The filter must be a string (e.g. ''description__name=EX_'')')
-
-        if filter:
-            filter = '&' + filter
-        else:
-            filter = ''
-
-        # Check the connection(Because afterwards we increase the timeout time for the query and we want to make sure
-        # we have a connection)
-        if not self.http_client.check_connection():
-            raise AgoraException('Could not connect to Agora')
-
-        url = f'{self.BASE_URL}{self.id}/parameters/?limit=10000000000' + filter
-        response = self.http_client.get(url, timeout=self.mLongTimeout)
-
-        if response.status_code == 200:
-            data = response.json()
-
-            if 'results' in data and 'count' in data:
-                parameters = []
-                results = data['results']
-                if data['count'] == 0:
-                    return parameters
-                if data['count'] != len(results):
-                    print('Warning: Could not get all parameter')
-
-                for parameter in results:
-                    parameters.append(Parameter(parameter))
-
-                return parameters
-
-        raise AgoraException('Could not get the series')
+    def search_parameter(self, search_string):
+        url = f'{self.BASE_URL}{self.id}/parameter/?search={search_string}&limit=10000000000'
+        return self._get_object_list(url, None, Parameter)
 
     def create(self, series_id=None, exam_id=None, folder_id=None, type=DatasetType.OTHER):
         url = Dataset.BASE_URL
