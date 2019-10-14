@@ -17,6 +17,8 @@ import urllib3
 from pathlib import Path
 from typing import List
 
+from gtagora.utils import validate_url
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
@@ -49,6 +51,8 @@ class Agora:
         Returns:
             Agora -- The agora instance
         """
+        url = validate_url(url)
+
         if api_key:
             connection = ApiKeyConnection(url, api_key=api_key, verify_certificate=Agora.verify_certificate)
             client = Client(connection=connection)

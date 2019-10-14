@@ -3,6 +3,7 @@ import zipfile
 import hashlib
 from itertools import zip_longest
 from pathlib import Path
+from urllib.parse import urlparse
 
 
 def get_file_info(path):
@@ -103,3 +104,15 @@ def sha1(path: Path):
             sha1.update(data)
 
     return sha1.hexdigest()
+
+def validate_url(url):
+    # check if the url has a scheme. If not then add it
+    u = urlparse(url)
+    if u.scheme != 'http' and u.scheme != 'https':
+        url = 'http://' + url
+        u = urlparse(url)
+
+    if u.path:
+        url = u.scheme + '://' + u.netloc
+
+    return url

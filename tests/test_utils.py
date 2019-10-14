@@ -1,7 +1,7 @@
 import zipfile
 from pathlib import Path
 
-from gtagora.utils import get_file_info, ZipUploadFiles
+from gtagora.utils import get_file_info, ZipUploadFiles, validate_url
 
 
 def test_get_file_info(tempdir_with_dummy_files):
@@ -99,3 +99,13 @@ class TestZipUploadFiles:
         zip_file_path = final_input_files[0]
         with zipfile.ZipFile(zip_file_path, 'r') as z:
             assert sorted([info.filename for info in z.infolist()]) == expected_zipped_files
+
+
+class TestURLValidate:
+
+    def test_url_validate(self):
+        assert validate_url('https://gauss4.ethz.ch') == 'https://gauss4.ethz.ch'
+        assert validate_url('http://gauss4.ethz.ch') == 'http://gauss4.ethz.ch'
+        assert validate_url('gauss4.ethz.ch') == 'http://gauss4.ethz.ch'
+        assert validate_url('gauss4.ethz.ch/') == 'http://gauss4.ethz.ch'
+        assert validate_url('http://gauss4.ethz.ch/exam/1/') == 'http://gauss4.ethz.ch'

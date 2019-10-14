@@ -64,6 +64,15 @@ class Exam(LinkToFolderMixin, DownloadDatasetMixin, ShareMixin, BaseModel):
 
         raise AgoraException('Could not get the series')
 
+    def get_folders(self, filters=None):
+        from gtagora.models.folder import Folder
+        
+        if filters and not isinstance(filters, dict):
+            raise AgoraException('The filter must be a dict')
+
+        url = f'{self.BASE_URL}{self.id}/folders/?limit=10000000000'
+        return self._get_object_list(url, filters, Folder)
+
     def upload(self, input_files, target_files=None):
         if target_files and len(input_files) != len(target_files):
             raise AgoraException("The Inputfiles and TargetFiles must have the same length")

@@ -1,5 +1,6 @@
 from gtagora.exception import AgoraException
 from gtagora.models.base import LinkToFolderMixin, ShareMixin, BaseModel
+from gtagora.models.breadcrumb import Breadcrumb
 from gtagora.models.dataset import Dataset
 from gtagora.models.datafile import Datafile
 from gtagora.models.exam import Exam
@@ -87,6 +88,10 @@ class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
                 datasets.extend(item.get_series(recursive))
 
         return datasets
+
+    def get_breadcrumb(self):
+        url = f'{self.BASE_URL}{self.id}/breadcrumb/?limit=10000000000'
+        return self._get_object_list(url, None, Breadcrumb)
 
     def download(self, target_path: Path, recursive=False) -> List[Datafile]:
 
