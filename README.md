@@ -38,7 +38,7 @@ for s in exam.get_series():
 agora.import_data('/path/to/directroy', new_folder)
 ```
 
-## Exmaples
+## Examples
 
 ### Create an Agora instanace
 

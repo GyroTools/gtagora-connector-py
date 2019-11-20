@@ -9,6 +9,9 @@ class TaskInfo(BaseModel):
     BASE_URL = '/api/v1/task/'
     TIMEOUT = 60
 
+    def join(self):
+        return self.poll();
+
     def poll(self, interval=2):
         start_time = datetime.datetime.now()
         while (datetime.datetime.now() - start_time).seconds < self.TIMEOUT:
