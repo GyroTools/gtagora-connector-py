@@ -81,11 +81,19 @@ for f in subfolders:
     print(f" - {f.name}")
 ```
 
-Create a new folder in the root folder (the new folder object is returned)
+Create a new folder in the root folder (the new folder object is returned). An exception is thrown if a folder with the same name already exists.
 
 ```python
-new_folder = root_folder.create_folder('TestFolder')
+new_folder = root_folder.get_or_create_folder('TestFolder')
 print(f"New folder ID: {new_folder.id}")
+```
+
+Get a folder or create it if it does not exist
+
+```python
+from pathlib import Path
+
+new_or_existing_folder = root_folder.get_or_create_folder(Path('TestFolder'))
 ```
 
 Delete a folder. Delete a folder is recursive. It deletes all items. The delete operation does not follow links.
@@ -150,6 +158,143 @@ for f in downloaded_files:
     print(str(f))
 ```
 
+### Import data
+
+Upload files into a folder
+
+```python
+from pathlib import Path
+
+folder = agora.get_folder(45)
+file1 = Path('C:/images/test1.jpg')
+file2 = Path('C:/images/test2.jpg')
+folder.upload([file1, file2])
+```
+
+Upload a whole folder structure
+
+```python
+from pathlib import Path
+
+folder = agora.get_folder(45)
+data = Path('C:/data/my_folder')
+folder.upload([data])
+```
+
+### Working with tasks
+
+Get all tasks visible to the current user:
+
+```python
+tasks = agora.get_tasks()
+```
+
+Get a task by ID
+
+```python
+task = agora.get_task(13)
+```
+
+Run a task. <br/>
+In this example the task has 2 inputs:
+
+- A dataset with key "ds"
+- An integer number with key "size"
+
+The last line in the code sample waits for the task to finish
+```python
+task = agora.get_task(13)
+target_folder = agora.get_folder(24)
+dataset = agora.get_dataset(57)
+taskinfo = task.run{'ds': dataset, 'size': 1024}, target_folder)
+taskinfo.join()
+```
+
+Save a task after it has been modified
+
+```python
+task = agora.get_task(13)
+task.name = 'new_name'
+task.save()
+```
+
+Delete a task
+
+```python
+task.delete()
+```
+
+Export all tasks into a json file
+
+```python
+agora.export_tasks('<output file>.json')
+```
+
+Import tasks from file (Experimental!)
+
+```python
+agora.import_tasks('<input file>.json')
+```
+
+### Working with parameters
+
+Get a parameter by name
+
+```python
+dataset = agora.get_dataset(13)
+parameter = dataset.get_parameter('EX_ACQ_echoes')
+if not parameter.is_array:
+    value = parameter.values[0]
+else:
+    value = parameter.values
+```
+
+Search for parameters
+
+```python
+dataset = agora.get_dataset(13)
+parameters = dataset.search_parameter('EX_ACQ_')
+print(f'{len(parameters)} parameters found')
+```
+
+
+### Users and sharing
+
+Get the current user
+
+```python
+current_user = agora.get_current_user()
+```
+
+Get all users
+
+```python
+users = agora.get_users()
+```
+
+Get all user groups
+
+```python
+users = agora.get_groups()
+```
+
+Share a folder with a user
+
+```python
+from gtagora.models.share import ShareLevel
+
+users = agora.get_users()
+folder = agora.get_folder(2417)
+response = folder.share(users[0].id, None, ShareLevel.ORGANIZE)
+```
+
+### Various
+
+Empty the trash
+
+```python
+agora.empty_trash()
+```
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.

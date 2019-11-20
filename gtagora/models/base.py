@@ -131,7 +131,7 @@ class ShareMixin:
         if not user_id and not group_id:
             raise AgoraException('Please specify a user id or group id')
 
-        url = f'{self.BASE_URL}/{self.id}/shares/'
+        url = f'{self.BASE_URL}{self.id}/shares/'
         data = [{"user": user_id, "group": group_id, "level": share_level}]
         response = self.http_client.post(url, json=data)
         return response
