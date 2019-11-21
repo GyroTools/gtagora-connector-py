@@ -18,29 +18,34 @@ Currently gtagora-connector supports python 3.6 and 3.7.
 from gtagora import Agora
 from gtagora.models.dataset import DatasetType
 
-agora = Agora.create('https://your.agora.domain.com', user='test', password='test')
+server = '<AGORA SERVER>'
+api_key = '<YOUR_API_KEY>'
 
-root_folder = agora.get_folders()
-subfolders = root_folder.get_folders() 
+agora = Agora.create(server, api_key)
+
+root_folder = agora.get_root_folder()
+subfolders = root_folder.get_folders()
 for s in subfolders:
     print(f' - {s.name}')
-    
-new_folder = root_folder.get_or_create_folder('New Folder')
 
-exam = agora.get_exam_list(filters={'name': 'Wrist'})[0]
-for s in exam.get_series():
-    print(f'Series: {s.name}')
-    
-    for dataset in s.get_datasets(filters={'type': DatasetType.PHILIPS_RAW}):
-        for datafile in dataset.get_datafiles():
-            print(f'{datafile.original_filename}')
+new_folder = root_folder.get_or_create('New Folder')
+
+exams = agora.get_exam_list(filters={'name': 'Wrist'})
+if exams:
+    exam = exams[0]
+    for s in exam.get_series():
+        print(f'Series: {s.name}')
+
+        for dataset in s.get_datasets(filters={'type': DatasetType.PHILIPS_RAW}):
+            for datafile in dataset.get_datafiles():
+                print(f'{datafile.original_filename}')
 
 agora.import_data('/path/to/directroy', new_folder)
 ```
 
 ## Examples
 
-### Create an Agora instanace
+### Create an Agora instance
 
 
 ```python
@@ -49,7 +54,9 @@ from gtagora import Agora
 agora = Agora.create('https://your.agora.domain.com', user='test', password='test')
 ```
 
-Because it's not recommended to ever write down your password in plain text the API is a better alternative. Actiavte the API Key in your Agora profile. The API key is just a random UUID and it can withdrawn or recreated easily.
+Since, it is not recommended to ever write down your password in plain text, Agora offers the possibility to connect with an API key. 
+The API key can be activated in your Agora profile, and is a random UUID which can be withdrawn or recreated easily.
+
 
 ```python
 from gtagora import Agora
@@ -84,16 +91,14 @@ for f in subfolders:
 Create a new folder in the root folder (the new folder object is returned). An exception is thrown if a folder with the same name already exists.
 
 ```python
-new_folder = root_folder.get_or_create_folder('TestFolder')
+new_folder = root_folder.create_folder('TestFolder')
 print(f"New folder ID: {new_folder.id}")
 ```
 
-Get a folder or create it if it does not exist
+Get a folder or create a new one if it does not exist
 
 ```python
-from pathlib import Path
-
-new_or_existing_folder = root_folder.get_or_create_folder(Path('TestFolder'))
+new_or_existing_folder = root_folder.get_or_create('TestFolder')
 ```
 
 Delete a folder. Delete a folder is recursive. It deletes all items. The delete operation does not follow links.
@@ -103,7 +108,7 @@ folder.delete()
 ```
 
     
-Get all items of a folder. An item could be a exam, series or a dataset
+Get all items of a folder. An item could for example be an exam, series or dataset
 
 ```python
 items = folder.get_items()
@@ -111,12 +116,19 @@ for item in items:
     print(f" - {item}")
 ```
 
-Get all exams of a folder. Use the recursive parameter to get all exams 
+Get all exams of a folder. Use the recursive parameter to also get the exams in all subfolders 
 
 ```python
 exams = folder.get_exams(recursive=False)
 for exam in exams:
     print(f" - {exam}")
+```
+
+Get the path of a folder within Agora (breadcrumb) 
+
+```python
+folder = agora.get_folder(45)
+breadcrumb = folder.get_breadcrumb()
 ```
     
 ### Working with Agora objects
@@ -145,6 +157,38 @@ Delete the link of an exam (doesn't delete the Exam itself)
 exam_item.delete()
 ```
 
+Get all series of an exam and then all datasets of the first series
+
+```python
+series = exam.get_series()
+datasets = series[0].get_datasets()
+```
+
+Get all datasets of an exam 
+
+```python
+series = exam.get_datasets()
+```
+
+Get a list of all patients
+
+```python
+patients = agora.get_patients()
+```
+
+Get a patient by ID
+
+```python
+patient = agora.get_patient(15)
+```
+
+Get a series or dataset by ID
+
+```python
+series = agora.get_series(76)
+dataset = agora.get_dataset(158)
+```
+
 ### Download data
 
 Download all data from a folder 
@@ -156,6 +200,14 @@ target = Path("c:/temp")
 downloaded_files = folder.download(target, recursive=False)
 for f in downloaded_files:
     print(str(f))
+```
+
+Exams, series and datasets also have a download function
+
+```python
+downloaded_files = exam.download(target)
+downloaded_files = series.download(target)
+downloaded_files = dataset.download(target)
 ```
 
 ### Import data

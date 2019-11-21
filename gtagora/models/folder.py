@@ -142,7 +142,10 @@ class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
 
         raise AgoraException(f'Could not create the folder {name}')
 
-    def get_or_create(self, path: Path):
+    def get_or_create(self, path):
+        if isinstance(path, str):
+            path = Path(path)
+
         next_folder = self
         for part in path.parts:
             next_folder_exists = False
