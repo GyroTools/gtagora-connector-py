@@ -1,3 +1,5 @@
+import pprint
+
 from gtagora.exception import AgoraException
 from gtagora.models.share import ShareLevel
 
@@ -103,6 +105,9 @@ class BaseModel:
             return object_list
 
         raise AgoraException(f'Could not get the {object_class.__name__} list')
+
+    def display(self):
+        pprint.pprint(vars(self), indent=4)
 
 
 class DownloadDatasetMixin:
