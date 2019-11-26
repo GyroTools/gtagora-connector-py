@@ -118,8 +118,16 @@ class DownloadDatasetMixin:
 
 
 class LinkToFolderMixin:
-    def link_to_folder(self, folder_id):
+    def link_to_folder(self, folder):
         from gtagora.models.folder_item import FolderItem
+        from gtagora.models.folder import Folder
+
+        if isinstance(folder, Folder):
+            folder_id = folder.id
+        elif isinstance(folder, int):
+            folder_id = folder
+        else:
+            raise AgoraException('The input must either be a folder or a folder id')
 
         url = f'{self.BASE_URL}{self.id}/link_to/{folder_id}/'
         post_data = {}
