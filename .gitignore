@@ -12,3 +12,10 @@ __pycache__
 
 # dev env
 /env/
+tests/antonio.py
+
+tests/elisabetta.py
+
+tests/playground.py
+
+.idea/
