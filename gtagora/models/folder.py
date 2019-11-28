@@ -59,7 +59,7 @@ class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
                         cur_folder = self._get_object(breadcrumb[cur_breadcrumb_index].object_id)
                         breadcrumb = None
                         cur_breadcrumb_index = None
-                    cur_folder = cur_folder._get_folder_by_name(part)
+                    cur_folder = cur_folder._get_by_name(part, Folder)
                     if not cur_folder:
                         return cur_folder
 
@@ -89,6 +89,9 @@ class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
 
         return exams
 
+    def get_exam(self, name):
+        return self._get_by_name(name, Exam)
+
     def get_series(self, recursive=False):
         series = []
         items = self.get_items()
@@ -100,6 +103,9 @@ class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
 
         return series
 
+    def get_serie(self, name):
+        return self._get_by_name(name, Series)
+
     def get_datasets(self, recursive=False):
         datasets = []
         items = self.get_items()
@@ -110,6 +116,10 @@ class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
                 datasets.extend(item.get_series(recursive))
 
         return datasets
+
+    def get_dataset(self, name):
+        return self._get_by_name(name, Dataset)
+
 
     def get_breadcrumb(self):
         url = f'{self.BASE_URL}{self.id}/breadcrumb/?limit=10000000000'
@@ -194,11 +204,10 @@ class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
         else:
             return None
 
-
-    def _get_folder_by_name(self, name):
-        folders = self.get_folders()
-        for folder in folders:
-            if folder.name == name:
-                return folder
+    def _get_by_name(self, name, instance):
+        items = self.get_items()
+        for item in items:
+            if isinstance(item.object, instance) and item.object.name == name:
+                return item.object
 
         return None

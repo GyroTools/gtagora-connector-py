@@ -88,6 +88,19 @@ for f in subfolders:
     print(f" - {f.name}")
 ```
 
+Get a subfolder folder by name. None will be returned if the folder does not exist
+
+```python
+my_folder = folder.get_folder('my_folder')
+```
+
+
+The get_folder function also takes a relative path.
+
+```python
+my_folder = folder.get_folder('../../data/my_folder')
+```
+
 Create a new folder in the root folder (the new folder object is returned). An exception is thrown if a folder with the same name already exists.
 
 ```python
@@ -122,6 +135,18 @@ Get all exams of a folder. Use the recursive parameter to also get the exams in 
 exams = folder.get_exams(recursive=False)
 for exam in exams:
     print(f" - {exam}")
+```
+
+Get all datasets of a folder. Use the recursive parameter to also get the exams in all subfolders 
+
+```python
+datasets = folder.get_datasets(recursive=False)
+```
+
+Get a dataset by name. None is returned if the dataset does not exist
+
+```python
+dataset = folder.get_dataset('my_dataset')
 ```
 
 Get the path of a folder within Agora (breadcrumb) 
