@@ -9,6 +9,16 @@ class Task(BaseModel):
 
     BASE_URL = '/api/v1/taskdefinition/'
 
+    INPUT_TYPE_EXAM = 1
+    INPUT_TYPE_SERIES = 2
+    INPUT_TYPE_DATASET = 3
+    INPUT_TYPE_FILE = 4
+    INPUT_TYPE_STRING = 5
+    INPUT_TYPE_INTEGER = 6
+    INPUT_TYPE_FLOAT = 7
+    INPUT_TYPE_SELECT = 8
+    INPUT_TYPE_FOLDER = 9
+
     def run(self, input=None, target: BaseModel=None, **kwargs):
         if input:
             input_dict = self._get_inputs(input)
@@ -125,20 +135,19 @@ class Task(BaseModel):
                     self._raise_input_error(input)
                 input_dict[argument_name] = {'object_id': argument.id, 'object_type': argument_type}
 
-            elif input['type'] < 5 :
+            elif input['type'] < Task.INPUT_TYPE_STRING or input['type'] == Task.INPUT_TYPE_FOLDER:
                 if not isinstance(argument, int):
                     self._raise_input_error(input)
                 input_dict[argument_name] = {'object_id': argument, 'object_type': input_type}
-
-            elif input['type'] == 5:
+            elif input['type'] == Task.INPUT_TYPE_STRING:
                 if not isinstance(argument, str):
                     self._raise_input_error(input)
                 input_dict[argument_name] = argument
-            elif input['type'] == 6:
+            elif input['type'] == Task.INPUT_TYPE_INTEGER:
                 if not isinstance(argument, int):
                     self._raise_input_error(input)
                 input_dict[argument_name] = argument
-            elif input['type'] == 7:
+            elif input['type'] == Task.INPUT_TYPE_FLOAT:
                 if not isinstance(argument, float):
                     self._raise_input_error(input)
                 input_dict[argument_name] = argument
@@ -156,7 +165,7 @@ class Task(BaseModel):
         argument_name = input['key']
         argument_type = self._get_type_name(input['type'])
         msg = ''
-        if input['type'] < 5:
+        if input['type'] < Task.INPUT_TYPE_STRING or input['type'] == Task.INPUT_TYPE_FOLDER:
             msg += '\n\nThe task input \'' + argument_name + '\' must eihter be a ' + argument_type + ' or a ' + argument_type + ' ID'
         else:
             msg += '\n\nThe task input \'' + argument_name + '\' must be a ' + argument_type
@@ -171,20 +180,20 @@ class Task(BaseModel):
     def _get_type_name(type: int):
         if type == 0:
             return 'none'
-        elif type == 1:
+        elif type == Task.INPUT_TYPE_EXAM:
             return 'exam'
-        elif type == 2:
+        elif type == Task.INPUT_TYPE_SERIES:
             return 'series'
-        elif type == 3:
+        elif type == Task.INPUT_TYPE_DATASET:
             return 'dataset'
-        elif type == 4:
+        elif type == Task.INPUT_TYPE_FOLDER:
             return 'folder'
-        elif type == 5:
+        elif type == Task.INPUT_TYPE_STRING:
             return 'string'
-        elif type == 6:
+        elif type == Task.INPUT_TYPE_INTEGER:
             return 'integer'
-        elif type == 7:
+        elif type == Task.INPUT_TYPE_FLOAT:
             return 'float'
-        elif type == 8:
+        elif type == Task.INPUT_TYPE_SELECT:
             return 'select'
 
