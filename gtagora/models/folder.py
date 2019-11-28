@@ -37,13 +37,35 @@ class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
 
         return False
 
-    def get_folder(self, name):
-        items = self.get_items()
-        for item in items:
-            if isinstance(item.object, Folder) and item.object.name == name:
-                return item.object
+    def get_folder(self, path):
+        if isinstance(path, str):
+            path = Path(path)
 
-        return None
+        breadcrumb = None
+        cur_breadcrumb_index = None
+        cur_folder = self
+        for part in path.parts:
+            if part:
+                if part == '..':
+                    if not breadcrumb:
+                        breadcrumb = cur_folder.get_breadcrumb()
+                        cur_breadcrumb_index = len(breadcrumb)-1
+                    cur_breadcrumb_index -= 1
+                    cur_breadcrumb_index = max(cur_breadcrumb_index, 0)
+                elif part == '.':
+                    continue
+                else:
+                    if cur_breadcrumb_index:
+                        cur_folder = self._get_object(breadcrumb[cur_breadcrumb_index].object_id)
+                        breadcrumb = None
+                        cur_breadcrumb_index = None
+                    cur_folder = cur_folder._get_folder_by_name(part)
+                    if not cur_folder:
+                        return cur_folder
+
+        if cur_breadcrumb_index:
+            cur_folder = self._get_object(breadcrumb[cur_breadcrumb_index].object_id)
+        return cur_folder
 
     def get_folders(self, recursive=False):
         folders = []
@@ -163,3 +185,20 @@ class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
         for id in ids:
             url = f'/api/v1/folderitem/delete_ids/'
             response = self.http_client.post(url, json={"ids": ids}, timeout=60)
+
+    def parent(self):
+        breadcrumb = self.get_breadcrumb()
+        if len(breadcrumb) > 1:
+            id = breadcrumb[-2].object_id
+            return self._get_object(id)
+        else:
+            return None
+
+
+    def _get_folder_by_name(self, name):
+        folders = self.get_folders()
+        for folder in folders:
+            if folder.name == name:
+                return folder
+
+        return None

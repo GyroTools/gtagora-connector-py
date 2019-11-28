@@ -9,24 +9,20 @@ class Task(BaseModel):
 
     BASE_URL = '/api/v1/taskdefinition/'
 
-    def run(self, inputs: dict, target: BaseModel):
-        # input has to be a dict where the key is the input "Key" specified in the task definition and the
-        # value is an Agora object e.g. a dataset
-        # target has to be the target specified in the task e.g. a folder or exam
-        input_dict = {}
+    def run(self, input=None, target: BaseModel=None, **kwargs):
+        if input:
+            input_dict = self._get_inputs(input)
+        else:
+            input_dict = self._get_inputs(kwargs)
+        self._check_outputs(target)
+
         data = {}
-        for key, object in inputs.items():
-            if isinstance(object, BaseModel):
-                object_name = object.__class__.__name__.lower()
-                input_dict[key] = {'object_id': object.id, 'object_type': object_name}
-            elif isinstance(object, int) or isinstance(object, float) or isinstance(object, str):
-                input_dict[key] = object
-            else:
-                raise AgoraException('Input not supported')
 
-
-        object_name = target.__class__.__name__.lower()
-        data['target'] = {'object_id': target.id, 'object_type': object_name}
+        if target:
+            object_name = target.__class__.__name__.lower()
+            data['target'] = {'object_id': target.id, 'object_type': object_name}
+        else:
+            data['target'] = None
 
         data['inputs'] = input_dict
 
@@ -39,7 +35,6 @@ class Task(BaseModel):
             taskinfo = json.loads(response.content)
             result = TaskInfo.get_list_from_data([taskinfo])
             return result[0] if result else None
-
 
     def create(self):
         data = self.toDict()
@@ -84,3 +79,112 @@ class Task(BaseModel):
             d[field] = self.__dict__.get(field)
 
         return d
+
+    def syntax(self):
+        print(self._get_run_cmd())
+
+    def _get_run_cmd(self):
+        cmd = 'task.run('
+        alternate_cmd = 'task.run('
+        first = True
+        for input in self.inputs:
+            if not first:
+                cmd += ', '
+                alternate_cmd += ', '
+
+            cmd += input['key'] + '=<' + self._get_type_name(input['type']) + '>'
+            if input['type'] < 5:
+                alternate_cmd += input['key'] + '=<' + self._get_type_name(input['type']) + ' ID>'
+            else:
+                alternate_cmd += input['key'] + '=<' + self._get_type_name(input['type']) + '>'
+
+            first = False
+
+        if self.outputs:
+            if not first:
+                cmd += ', '
+                alternate_cmd += ', '
+            cmd += 'target=<target>'
+            alternate_cmd += 'target=<target>'
+        cmd += ')'
+        alternate_cmd += ')'
+        return cmd + '\nOR\n' + alternate_cmd
+
+    def _get_inputs(self, arguments):
+        input_dict = {}
+        for input in self.inputs:
+            if not input['key'] in arguments:
+                raise AgoraException('\n\nThe task input \'' + input['key'] + '\' is unassigned.\nRun the task with the following command:\n\n' + self._get_run_cmd())
+
+            argument_name = input['key']
+            argument = arguments[argument_name]
+            argument_type = argument.__class__.__name__.lower()
+            input_type = self._get_type_name(input['type'])
+            if isinstance(argument, BaseModel):
+                if argument_type != self._get_type_name(input['type']):
+                    self._raise_input_error(input)
+                input_dict[argument_name] = {'object_id': argument.id, 'object_type': argument_type}
+
+            elif input['type'] < 5 :
+                if not isinstance(argument, int):
+                    self._raise_input_error(input)
+                input_dict[argument_name] = {'object_id': argument, 'object_type': input_type}
+
+            elif input['type'] == 5:
+                if not isinstance(argument, str):
+                    self._raise_input_error(input)
+                input_dict[argument_name] = argument
+            elif input['type'] == 6:
+                if not isinstance(argument, int):
+                    self._raise_input_error(input)
+                input_dict[argument_name] = argument
+            elif input['type'] == 7:
+                if not isinstance(argument, float):
+                    self._raise_input_error(input)
+                input_dict[argument_name] = argument
+
+        return input_dict
+
+    def _check_outputs(self, target):
+        if self.outputs and not target:
+            raise AgoraException('\n\nThe \'target\' argument is missing (e.g. the output folder). Run the task with the following command:\n\n' + self._get_run_cmd())
+
+        if self.outputs and not isinstance(target, BaseModel):
+            raise AgoraException('\n\nThe target must be an Agora object (e.g. a folder)')
+
+    def _raise_input_error(self, input):
+        argument_name = input['key']
+        argument_type = self._get_type_name(input['type'])
+        msg = ''
+        if input['type'] < 5:
+            msg += '\n\nThe task input \'' + argument_name + '\' must eihter be a ' + argument_type + ' or a ' + argument_type + ' ID'
+        else:
+            msg += '\n\nThe task input \'' + argument_name + '\' must be a ' + argument_type
+
+        msg += '\n\nRun the task with the following syntax:\n' + self._get_run_cmd()
+
+        raise AgoraException(msg)
+
+
+
+    @staticmethod
+    def _get_type_name(type: int):
+        if type == 0:
+            return 'none'
+        elif type == 1:
+            return 'exam'
+        elif type == 2:
+            return 'series'
+        elif type == 3:
+            return 'dataset'
+        elif type == 4:
+            return 'folder'
+        elif type == 5:
+            return 'string'
+        elif type == 6:
+            return 'integer'
+        elif type == 7:
+            return 'float'
+        elif type == 8:
+            return 'select'
+

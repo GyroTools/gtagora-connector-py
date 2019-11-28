@@ -258,9 +258,20 @@ The last line in the code sample waits for the task to finish
 task = agora.get_task(13)
 target_folder = agora.get_folder(24)
 dataset = agora.get_dataset(57)
-taskinfo = task.run{'ds': dataset, 'size': 1024}, target_folder)
+taskinfo = task.run(target=target_folder, ds=dataset, size=1024)
 taskinfo.join()
 ```
+
+alternatively only the ID's of the Agora objects can be given as argument:
+```python
+taskinfo = task.run(target=target_folder, ds=23, size=1024)
+```
+
+the syntax to run the task can be printed to the console with the syntax function:
+```python
+task.syntax()
+```
+
 
 Save a task after it has been modified
 
@@ -346,6 +357,15 @@ Empty the trash
 
 ```python
 agora.empty_trash()
+```
+
+The members of any Agora object can be printed to the console with the display function
+```python
+exam = agora.get_exam(22)
+exam.display()
+
+folder = agora.get_folder(15)
+folder.display()
 ```
 
 ## Contributing
