@@ -37,6 +37,21 @@ class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
 
         return False
 
+    def is_subfolder_of(self, folder):
+        if isinstance(folder, Folder):
+            folder_id = folder.id
+        elif isinstance(folder, int):
+            folder_id = folder
+        else:
+            raise AgoraException('The folder argument must either be a Folder class or a folder ID')
+
+        breadcrumb = self.get_breadcrumb()
+        for b in breadcrumb:
+            if b.object_id == folder_id:
+                return True
+
+        return False
+
     def get_folder(self, path):
         if isinstance(path, str):
             path = Path(path)
@@ -211,3 +226,6 @@ class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
                 return item.object
 
         return None
+
+    def __str__(self):
+        return f"Folder: {self.name}"

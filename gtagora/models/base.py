@@ -81,7 +81,7 @@ class BaseModel:
             data = response.json()
             return self.__class__.from_response(data, http_client=self.http_client)
 
-        raise AgoraException('Could not get the {0}'.format(__class__.__name__))
+        raise AgoraException('Could not get the {0}. HTTP status = {1}'.format(self.__class__.__name__, response.status_code))
 
     def _get_object_list(self, url, params, object_class):
         response = self.http_client.get(url, params=params)
@@ -136,6 +136,46 @@ class LinkToFolderMixin:
             return FolderItem.from_response(response.json(), http_client=self.http_client)
 
         raise AgoraException('Could not create a link')
+
+    def get_folders(self, parent_folder = None, filters=None):
+        from gtagora.models.folder import Folder
+
+        if filters and not isinstance(filters, dict):
+            raise AgoraException('The filter must be a dict')
+
+        url = f'{self.BASE_URL}{self.id}/folders/?limit=10000000000'
+
+        folders = self._get_object_list(url, filters, Folder)
+
+        if parent_folder:
+            filtered_folders = []
+            for f in folders:
+                if f.is_subfolder_of(parent_folder):
+                    filtered_folders.append(f)
+
+            folders = filtered_folders if filtered_folders else None
+
+        return folders
+
+    def is_in_folder(self, object: BaseModel, folder):
+        from gtagora.models.folder import Folder
+
+        folder_id = None
+        if isinstance(folder, Folder):
+            folder_id = folder.id
+        elif isinstance(folder, int):
+            folder_id = folder
+        else:
+            raise AgoraException('The folder argument must either be a Folder class or a folder ID')
+
+        folders = object.get_folders()
+        for f in folders:
+            breadcrumb = f.get_breadcrumb()
+            for b in breadcrumb:
+                if b.object_id == folder_id:
+                    return f
+
+        return None
 
 
 class ShareMixin:
