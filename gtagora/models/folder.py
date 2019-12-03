@@ -140,6 +140,17 @@ class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
         url = f'{self.BASE_URL}{self.id}/breadcrumb/?limit=10000000000'
         return self._get_object_list(url, None, Breadcrumb)
 
+    def path(self):
+        breadcrumb = self.get_breadcrumb()
+        first = True
+        p = ''
+        for b in breadcrumb:
+            if not first:
+                p += '/'
+            p+= b.name
+            first = False
+        return p
+
     def download(self, target_path: Path, recursive=False) -> List[Datafile]:
 
         # Get all Exams in the current folder and download them
