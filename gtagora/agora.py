@@ -33,7 +33,7 @@ class Agora:
         self.set_default_client(client)
 
     @staticmethod
-    def create(url, api_key=None, user=None, password=None):
+    def create(url, api_key=None, user=None, password=None, token=None):
         """Creates an Agora instance. Prefer this method over using the Agora constructor.
 
         To authenticate use either the api_key parameter or the user and password parameter.
@@ -56,6 +56,10 @@ class Agora:
         if api_key:
             connection = ApiKeyConnection(url, api_key=api_key, verify_certificate=Agora.verify_certificate)
             client = Client(connection=connection)
+        elif token:
+            connection = TokenConnection(url, verify_certificate=Agora.verify_certificate)
+            client = Client(connection=connection)
+            connection.token = token
         else:
             connection = TokenConnection(url, verify_certificate=Agora.verify_certificate)
             client = Client(connection=connection)
