@@ -1,7 +1,6 @@
 import pprint
 
 from gtagora.exception import AgoraException
-from gtagora.models.share import ShareLevel
 
 
 def get_client(http_client):
@@ -176,19 +175,6 @@ class LinkToFolderMixin:
                     return f
 
         return None
-
-
-class ShareMixin:
-
-    def share(self, user_id=None, group_id=None, share_level=ShareLevel.READ_ONLY):
-        if not user_id and not group_id:
-            raise AgoraException('Please specify a user id or group id')
-
-        url = f'{self.BASE_URL}{self.id}/shares/'
-        data = [{"user": user_id, "group": group_id, "level": share_level}]
-        response = self.http_client.post(url, json=data)
-        return response
-
 
 class SearchMixin:
 

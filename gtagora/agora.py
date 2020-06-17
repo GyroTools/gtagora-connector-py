@@ -3,6 +3,7 @@ from gtagora.http.client import Client
 from gtagora.http.connection import ApiKeyConnection, TokenConnection
 from gtagora.models.dataset import Dataset
 from gtagora.models.exam import Exam
+from gtagora.models.project import Project
 from gtagora.models.series import Series
 from gtagora.models.folder import Folder
 from gtagora.models.patient import Patient
@@ -86,6 +87,16 @@ class Agora:
 
         return False
 
+    # Project
+    def get_projects(self, filters=None):
+        return Project.get_list(filters, http_client=self.http_client)
+
+    def get_project(self, project_id):
+        return Project.get(project_id, http_client=self.http_client)
+
+    def get_myagora(self):
+        return Project.get('myagora', http_client=self.http_client)
+
     # Folder
     def get_root_folder(self):
         """Returns a list of all root folder of the current user.
@@ -93,7 +104,7 @@ class Agora:
         Returns:
             List[Folder] -- The list of root folders
         """
-        return Folder.get(0, http_client=self.http_client)
+        return self.get_myagora().get_root_folder()
 
     def get_folder(self, folder_id: int):
         """Returns the folder instance

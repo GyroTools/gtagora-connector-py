@@ -23,14 +23,15 @@ api_key = '<YOUR_API_KEY>'
 
 agora = Agora.create(server, api_key)
 
-root_folder = agora.get_root_folder()
+myagora_project = agora.get_myagora()
+root_folder = myagora_project.get_root_folder()
 subfolders = root_folder.get_folders()
 for s in subfolders:
     print(f' - {s.name}')
 
 new_folder = root_folder.get_or_create('New Folder')
 
-exams = agora.get_exam_list(filters={'name': 'Wrist'})
+exams = myagora_project.get_exams(filters={'name': 'Wrist'})
 if exams:
     exam = exams[0]
     for s in exam.get_series():
@@ -64,12 +65,50 @@ from gtagora import Agora
 agora = Agora.create('https://your.agora.domain.com', api_key='<YOUR_API_KEY>')
 ```
 
-### Working with folders
+### Working with projects
 
-Get the root folder of the current user:
+Get a list of projects:
 
 ```python
-root_folder = agora.get_root_folder()
+projects = agora.get_projects()
+for p in projects:
+    print(f" - {p.display_name}")
+```
+
+Get a project by ID:
+
+```python
+project = agora.get_project(2)
+print(f" - {project.display_name}")
+```
+
+Get the \"My Agora\" project:
+
+```python
+myagora = agora.get_myagora()
+```
+
+Get root folder of a project
+
+```python
+project = agora.get_project(2)
+root_folder = project.get_root_folder()
+```
+
+Get all exams of a project
+
+```python
+project = agora.get_project(2)
+exams = project.get_exams()
+```
+
+### Working with folders
+
+Get the root folder of the \"My Agora\" project:
+
+```python
+myagora = agora.get_myagora()
+root_folder = myagora.get_root_folder()
 print(f"Root folder ID: {root_folder.id}")
 ```
 
@@ -364,16 +403,6 @@ Get all user groups
 
 ```python
 users = agora.get_groups()
-```
-
-Share a folder with a user
-
-```python
-from gtagora.models.share import ShareLevel
-
-users = agora.get_users()
-folder = agora.get_folder(2417)
-response = folder.share(users[0].id, None, ShareLevel.ORGANIZE)
 ```
 
 ### Various

@@ -1,5 +1,5 @@
 from gtagora.exception import AgoraException
-from gtagora.models.base import LinkToFolderMixin, ShareMixin, BaseModel
+from gtagora.models.base import LinkToFolderMixin, BaseModel
 from gtagora.models.breadcrumb import Breadcrumb
 from gtagora.models.dataset import Dataset
 from gtagora.models.datafile import Datafile
@@ -14,7 +14,7 @@ from typing import List
 from functools import partial
 
 
-class Folder(LinkToFolderMixin, ShareMixin, BaseModel):
+class Folder(LinkToFolderMixin, BaseModel):
     BASE_URL = '/api/v1/folder/'
 
     def get_items(self):

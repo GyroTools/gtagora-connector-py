@@ -1,5 +1,5 @@
 from gtagora.exception import AgoraException
-from gtagora.models.base import BaseModel, LinkToFolderMixin, ShareMixin, DownloadDatasetMixin
+from gtagora.models.base import BaseModel, LinkToFolderMixin, DownloadDatasetMixin
 from gtagora.models.dataset import Dataset
 from gtagora.models.series import Series
 from gtagora.utils import remove_illegal_chars
@@ -7,7 +7,7 @@ from gtagora.utils import remove_illegal_chars
 from pathlib import Path
 
 
-class Exam(LinkToFolderMixin, DownloadDatasetMixin, ShareMixin, BaseModel):
+class Exam(LinkToFolderMixin, DownloadDatasetMixin, BaseModel):
     BASE_URL = '/api/v1/exam/'
 
     def set_name(self, name):
