@@ -124,7 +124,7 @@ def import_data(http_client, paths: List[Path], target_folder_id: int = None, js
     target_folder is None and data is uploaded that can't be trated as an exam or series a new folder in the
     root will be created.
 
-    :param files: One directroy or multiple files as string or Path
+    :param files: One directory or multiple files as string or Path
     :param target_folder: The target folder
     :param wait: Wait until the upload and import process ha sbeen finished
     :returns: The import package. Can be used to watch the upload
