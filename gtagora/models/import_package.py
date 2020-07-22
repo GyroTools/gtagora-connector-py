@@ -30,12 +30,13 @@ class ImportPackage(BaseModel):
         raise AgoraException("Can't create an Import object")
 
     def upload(self, input_files: List[Path], target_folder_id: int = None, json_import_file=None, wait=True,
-               timeout: int = None, progress=False):
+               timeout: int = None, progress=False, relations: dict = None):
 
         base_url = '/api/v1/import/' + str(self.id) + '/'
         url = base_url + 'upload/'
 
         input_files, target_files = self._prepare_paths_to_upload(input_files)
+        relations = self._prepare_relations(relations, input_files, target_files)
 
         if self._check_zip_option(input_files):
             print("Prepare optimized upload")
@@ -47,7 +48,7 @@ class ImportPackage(BaseModel):
             self.zip_upload = False
             response = self.http_client.upload(url, input_files, target_files, progress=progress)
 
-        if self.complete(json_import_file, target_folder_id=target_folder_id):
+        if self.complete(json_import_file, target_folder_id=target_folder_id, relations=relations):
             if wait:
                 start_time = datetime.datetime.now()
                 while (datetime.datetime.now() - start_time).seconds < timeout if timeout else True:
@@ -58,13 +59,15 @@ class ImportPackage(BaseModel):
 
         raise AgoraException(f'Failed to complete upload {self.id}: {response.status_code}')
 
-    def complete(self, json_import_file=None, target_folder_id=None):
+    def complete(self, json_import_file=None, target_folder_id=None, relations: dict = None):
         url = self.BASE_URL + str(self.id) + '/complete/'
         post_data = {}
         if json_import_file:
             post_data.update({'import_file': json_import_file})
         if target_folder_id:
             post_data.update({'folder': target_folder_id})
+        if relations:
+            post_data.update({'relations': relations})
 
         response = self.http_client.post(url, json=post_data)
         if response.status_code == 204:
@@ -111,12 +114,49 @@ class ImportPackage(BaseModel):
 
         return input_files, target_files
 
+    def _prepare_relations(self, relations, input_files, target_files):
+        new_relations = dict()
+        all_related_files = []
+        for relation_target, related_files in relations.items():
+            all_related_files.extend(related_files)
+        if len(all_related_files) > len(set(all_related_files)):
+            raise AgoraException(f'Related files can only occur once')
+
+        for relation_target, related_files in relations.items():
+            target_path = self._to_target_path(relation_target, input_files, target_files)
+            if not target_path:
+                raise AgoraException(f'The relation {relation_target} is not a file which is uploaded')
+
+
+            new_related_files = []
+            for related_file in related_files:
+                new_file = self._to_target_path(related_file, input_files, target_files)
+                if not new_file:
+                    raise AgoraException(f'The related file {related_file} is not a file which is uploaded')
+                new_related_files.append(new_file)
+            new_relations[target_path] = new_related_files
+
+        return new_relations
+
     def _check_zip_option(self, input_files):
         return len(input_files) > 5
 
+    def _to_target_path(self, path: str, input_files, target_files):
+        try:
+            absolute_path = Path(path).absolute()
+            if absolute_path in input_files:
+                index = input_files.index(absolute_path)
+                return target_files[index]
+            elif path in target_files:
+                return path
+            else:
+               return None
+        except:
+            return None
+
 
 def import_data(http_client, paths: List[Path], target_folder_id: int = None, json_import_file: Path = None, wait=True,
-                progress=False):
+                progress=False, relations: dict =None):
     """
     Import a directory or a list of files with optional target file names.
 
@@ -142,5 +182,6 @@ def import_data(http_client, paths: List[Path], target_folder_id: int = None, js
                           target_folder_id=target_folder_id,
                           json_import_file=json_import_file.name if json_import_file else None,
                           wait=wait,
-                          progress=progress)
+                          progress=progress,
+                          relations=relations)
     return import_package

@@ -24,7 +24,7 @@ class BaseModel:
         return instance
 
     @classmethod
-    def get(cls, id, http_client=None):
+    def get(cls, id=None, http_client=None):
         instance = cls(http_client=http_client)
         return instance._get_object(id)
 
@@ -74,7 +74,11 @@ class BaseModel:
             setattr(self, key, value)
 
     def _get_object(self, id):
-        url = f'{self.BASE_URL}{id}/'
+        if id:
+            url = f'{self.BASE_URL}{id}/'
+        else:
+            url = f'{self.BASE_URL}'
+
         response = self.http_client.get(url)
         if response.status_code == 200:
             data = response.json()

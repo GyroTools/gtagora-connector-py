@@ -18,6 +18,7 @@ import urllib3
 from pathlib import Path
 from typing import List
 
+from gtagora.models.version import Version
 from gtagora.utils import validate_url
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -28,10 +29,14 @@ class Agora:
     verify_certificate = False
 
     default_client = None
+    version: Version = None
 
     def __init__(self, client):
         self.http_client = client
         self.set_default_client(client)
+        self.version = self.get_version()
+        self.version.needs('6.0.0', error_message='The python interface needs Agora version 6.0.0 or higher. Please update Agora')
+
 
     @staticmethod
     def create(url, api_key=None, user=None, password=None, token=None):
@@ -66,7 +71,9 @@ class Agora:
             client = Client(connection=connection)
             connection.login(client, user, password)
 
-        client.check_connection()
+        if not client.check_connection():
+            raise AgoraException('Could not connect to the Agora server at ' + url)
+
         return Agora(client)
 
     @staticmethod
@@ -202,7 +209,7 @@ class Agora:
 
     # Import
     def upload(self, paths: List[Path], target_folder_id: Folder = None, json_import_file: Path = None, wait=True,
-               progress=False):
+               progress=False, relations: dict =None):
         """Upload and import files to Agora
 
         Arguments:
@@ -218,12 +225,15 @@ class Agora:
         Returns:
             [type] -- [description]
         """
+        if relations:
+            self.version.needs('6.3.0', 'relations')
+
         for path in paths:
             if not path.exists():
                 raise FileNotFoundError(path.as_posix())
 
         return import_data(self.http_client, paths=paths, target_folder_id=target_folder_id,
-                           json_import_file=json_import_file, wait=wait, progress=progress)
+                           json_import_file=json_import_file, wait=wait, progress=progress, relations=relations)
 
     def import_directroy(self, directory: Path, target_folder_id: int = None, json_import_file: Path = None, wait=True,
                          progress=False):
@@ -300,6 +310,22 @@ class Agora:
     def empty_trash(self):
         trash = Trash()
         trash.empty()
+
+    def get_version(self):
+        """Returns the Agora version
+
+        Returns:
+            Version -- A Version object
+        """
+        return Version.get(http_client=self.http_client)
+
+    def get_version(self):
+        """Returns the Agora version
+
+        Returns:
+            Version -- A Version object
+        """
+        return Version.get(http_client=self.http_client)
 
     def close(self):
         pass

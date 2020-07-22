@@ -297,6 +297,44 @@ data = Path('C:/data/my_folder')
 folder.upload([data])
 ```
 
+Upload (and import) a rawfile and add an additional file to the the created series (Agora version > 6.3.0):
+
+In this example a scanner rawfile and a textfile is uploaded. The rawfile will be imported into Agora and a Study and Series 
+will be created. We can add the additional text file to the created Series by specifying the "relations" attribute in the 
+upload function. The "relations" attribute is a dictionary whose key is the path to the rawfile and the value is a list 
+of additional files which will be added to the created series:
+
+```python
+folder = agora.get_folder(45)
+
+files = [
+Path('C:/data/raw/rawfile.raw'),
+Path('C:/data/raw/rawfile.lab'),
+Path('C:/data/log/logfile.txt'),
+]
+
+relations = {
+'C:/data/raw/rawfile.raw' : ['C:/data/log/logfile.txt']
+}
+
+folder.upload(files, relations=relations)
+```
+
+This also works when uploading a whole directory:
+
+```python
+folder = agora.get_folder(45)
+
+dir = [Path('C:/data/')]
+
+relations = {
+'C:/data/raw/rawfile.raw' : ['C:/data/log/logfile.txt']
+}
+
+folder.upload(dir, relations=relations)
+```
+  
+
 ### Working with tasks
 
 Get all tasks visible to the current user:
