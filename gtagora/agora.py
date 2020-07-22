@@ -36,7 +36,7 @@ class Agora:
         self.set_default_client(client)
         self.version = self.get_version()
         self.version.needs('6.0.0', error_message='The python interface needs Agora version 6.0.0 or higher. Please update Agora')
-
+        self.import_directroy = self.import_directory # for backward-compatibility.
 
     @staticmethod
     def create(url, api_key=None, user=None, password=None, token=None):
@@ -235,11 +235,11 @@ class Agora:
         return import_data(self.http_client, paths=paths, target_folder_id=target_folder_id,
                            json_import_file=json_import_file, wait=wait, progress=progress, relations=relations)
 
-    def import_directroy(self, directory: Path, target_folder_id: int = None, json_import_file: Path = None, wait=True,
+    def import_directory(self, directory: Path, target_folder_id: int = None, json_import_file: Path = None, wait=True,
                          progress=False):
         """Upload and import a directory to Agora.
 
-        The directroy sturcture of all subdirectries will be preserved.
+        The directory sturcture of all subdirectries will be preserved.
 
         Arguments:
             directory {Path} -- A single directroy to upload
@@ -254,7 +254,7 @@ class Agora:
             raise TypeError("Expects a pathlib.Path for directory")
 
         if directory.exists is False:
-            raise FileNotFoundError("Directroy doesn't exists")
+            raise FileNotFoundError("Directory doesn't exists")
 
         return import_data(self.http_client, directory, target_folder_id, json_import_file, wait, progress)
 
