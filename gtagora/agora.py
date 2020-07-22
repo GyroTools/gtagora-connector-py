@@ -236,13 +236,13 @@ class Agora:
                            json_import_file=json_import_file, wait=wait, progress=progress, relations=relations)
 
     def import_directory(self, directory: Path, target_folder_id: int = None, json_import_file: Path = None, wait=True,
-                         progress=False):
+                         progress=False, relations: dict =None):
         """Upload and import a directory to Agora.
 
         The directory sturcture of all subdirectries will be preserved.
 
         Arguments:
-            directory {Path} -- A single directroy to upload
+            directory {Path} -- A single directory to upload
 
         Keyword Arguments:
             target_folder {Folder} -- [description] (default: {None})
@@ -250,13 +250,13 @@ class Agora:
             wait {bool} -- [description] (default: {True})
             progress {bool} -- [description] (default: {False})
         """
-        if directory is None or directory.is_dir is False:
+        if directory is None or not isinstance(directory, Path) or directory.is_dir is False:
             raise TypeError("Expects a pathlib.Path for directory")
 
         if directory.exists is False:
             raise FileNotFoundError("Directory doesn't exists")
 
-        return import_data(self.http_client, directory, target_folder_id, json_import_file, wait, progress)
+        return import_data(self.http_client, paths=[directory], target_folder_id=target_folder_id, json_import_file=json_import_file, wait=wait, progress=progress, relations=relations)
 
     # User
     def get_users(self):
