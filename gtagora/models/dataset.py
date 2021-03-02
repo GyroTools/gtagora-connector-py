@@ -21,6 +21,7 @@ class DatasetType:
 
 class Dataset(LinkToFolderMixin, BaseModel):
     BASE_URL = '/api/v1/dataset/'
+    BASE_URL_V2 = '/api/v2/dataset/'
 
     def _set_values(self, model_dict):
         for key, value in model_dict.items():
@@ -104,6 +105,13 @@ class Dataset(LinkToFolderMixin, BaseModel):
             return Dataset.get(dataset.id, http_client)
 
         raise AgoraException("Failed to create a new dataset")
+
+    def copy_to_folder(self, target_folder_id):
+        url = f'{self.BASE_URL_V2}{self.id}/copy_to_project/{target_folder_id}/'
+        response = self.http_client.post(url, json={}, timeout=60)
+        if response.status_code != 200:
+            raise AgoraException(f'Could not copy the dataset: status = {response.status_code}, message = {response.text}')
+        return Dataset.from_response(response.json(), self.http_client)
 
     def __str__(self):
         return f"Dataset: {self.name}, {self.total_size}"

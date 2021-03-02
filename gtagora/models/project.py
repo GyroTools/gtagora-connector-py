@@ -1,7 +1,7 @@
 import json
 
 from gtagora.exception import AgoraException
-from gtagora.models.Host import Host
+from gtagora.models.host import Host
 from gtagora.models.base import BaseModel
 from gtagora.models.dataset import Dataset
 from gtagora.models.folder import Folder

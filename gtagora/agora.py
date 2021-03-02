@@ -95,7 +95,7 @@ class Agora:
         return False
 
     # Project
-    def create_project(self, name: str, description: str, copy_from_id: int =None):
+    def create_project(self, name: str, description: str= '', copy_from_id: int =None):
         """Creates a new project. If "copy_from_id" is specified then all the settings are
            copied from the project with the given id
 
@@ -120,6 +120,15 @@ class Agora:
             return project
         else:
             raise AgoraException(f'Could not create the project {name}: status = {response.status_code}')
+
+    def get_or_create_project(self, name: str, description: str= '', copy_from_id: int =None):
+        filters = dict()
+        filters['name'] = name
+        projects = self.get_projects(filters=filters)
+        if projects:
+            return projects[0]
+        return self.create_project(name, description, copy_from_id)
+
 
     def get_projects(self, filters=None):
         return Project.get_list(filters, http_client=self.http_client)

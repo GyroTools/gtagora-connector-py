@@ -1,10 +1,12 @@
 from gtagora.exception import AgoraException
 from gtagora.models.base import LinkToFolderMixin, BaseModel, DownloadDatasetMixin, SearchMixin
 from gtagora.models.dataset import Dataset
+from gtagora.models.timeline import TimelineItem
 
 
 class Series(LinkToFolderMixin, DownloadDatasetMixin, BaseModel, SearchMixin):
     BASE_URL = '/api/v1/serie/'
+    BASE_URL_V2 = '/api/v2/series/'
 
     def get_datasets(self, filters=None):
         if filters and not isinstance(filters, dict):
@@ -51,5 +53,30 @@ class Series(LinkToFolderMixin, DownloadDatasetMixin, BaseModel, SearchMixin):
             pars.extend(cur_pars)
         return pars
 
+    def copy_to_folder(self, target_folder_id):
+        url = f'{self.BASE_URL_V2}{self.id}/copy_to_project/{target_folder_id}/'
+        response = self.http_client.post(url, json={}, timeout=60)
+        if response.status_code != 200:
+            raise AgoraException(f'Could not copy the series: status = {response.status_code}')
+
+        return self._get_new_series_from_timeline(response)
+
     def __str__(self):
         return f"Series: {self.name}"
+
+    def _get_new_series_from_timeline(self, response):
+        timeline_item = TimelineItem.from_response(response.json(), self.http_client)
+        timeline_item = timeline_item.poll()
+        if not timeline_item.data:
+            return None
+
+        related_objects = timeline_item.data.get('related_objects')
+        if related_objects:
+            for obj in related_objects:
+                if obj.get('id') and obj.get('id') != self.id:
+                    try:
+                        return self.get(obj.get('id'), self.http_client)
+                    except:
+                        pass
+
+        return None

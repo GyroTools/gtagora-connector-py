@@ -3,7 +3,7 @@ from pathlib import Path
 
 from gtagora.exception import AgoraException
 from gtagora.models.base import BaseModel
-from gtagora.models.task_info import TaskInfo
+from gtagora.models.timeline import TimelineItem
 
 
 class Task(BaseModel):
@@ -44,7 +44,7 @@ class Task(BaseModel):
             raise AgoraException('Cannot run the task: ' + response.text)
         else:
             taskinfo = json.loads(response.content)
-            result = TaskInfo.get_list_from_data([taskinfo])
+            result = TimelineItem.get_list_from_data([taskinfo])
             return result[0] if result else None
 
     def create(self):

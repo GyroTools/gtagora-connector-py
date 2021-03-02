@@ -2,6 +2,7 @@ from gtagora.exception import AgoraException
 from gtagora.models.base import BaseModel, LinkToFolderMixin, DownloadDatasetMixin
 from gtagora.models.dataset import Dataset
 from gtagora.models.series import Series
+from gtagora.models.timeline import TimelineItem
 from gtagora.utils import remove_illegal_chars
 
 from pathlib import Path
@@ -9,6 +10,7 @@ from pathlib import Path
 
 class Exam(LinkToFolderMixin, DownloadDatasetMixin, BaseModel):
     BASE_URL = '/api/v1/exam/'
+    BASE_URL_V2 = '/api/v2/exam/'
 
     def set_name(self, name):
         url = self.BASE_URL + str(self.id) + '/'
@@ -101,5 +103,56 @@ class Exam(LinkToFolderMixin, DownloadDatasetMixin, BaseModel):
         return self.http_client.upload_dataset(input_files, target_files, self.http_client, exam_id=self.id,
                                                dataset_type=dataset_type)
 
+    def copy_to_project(self, project_id):
+        url = f'{self.BASE_URL_V2}{self.id}/copy_to/{project_id}/'
+        response = self.http_client.post(url, json={}, timeout=60)
+        if response.status_code != 200:
+            raise AgoraException(f'Could not copy the exam: status = {response.status_code}')
+
+        return self._get_new_exam_from_timeline(response)
+
+    def copy_to_folder(self, target_folder_id):
+        from gtagora.models.folder import Folder
+        folder_url = f'{Folder.BASE_URL}{target_folder_id}/'
+        response = self.http_client.get(folder_url, timeout=60)
+        if response.status_code != 200:
+            raise AgoraException(f'Could not find the folder with id = {target_folder_id}')
+        folder = Folder.from_response(response.json(), self.http_client)
+
+        url = f'{self.BASE_URL_V2}{self.id}/copy_to/{folder.project}/folder/{target_folder_id}/'
+
+        response = self.http_client.post(url, json={}, timeout=60)
+        if response.status_code != 200:
+            raise AgoraException(f'Could not copy the exam: status = {response.status_code}')
+
+        return self._get_new_exam_from_timeline(response)
+
+    def move_to_project(self, project_id, target_folder_id=None):
+        if not target_folder_id:
+            url = f'{self.BASE_URL_V2}{self.id}/move_to{project_id}/'
+        else:
+            url = f'{self.BASE_URL_V2}{self.id}/move_to/{project_id}/folder/{target_folder_id}/'
+
+        response = self.http_client.post(url, json={}, timeout=60)
+        if response.status_code != 200:
+            raise AgoraException(f'Could not move the exam: status = {response.status_code}')
+
+        return self._get_new_exam_from_timeline(response)
+
     def __str__(self):
         return f"Exam: {self.name}"
+
+    def _get_new_exam_from_timeline(self, response):
+        timeline_item = TimelineItem.from_response(response.json(), self.http_client)
+        timeline_item = timeline_item.poll()
+        related_objects = timeline_item.data.get('related_objects')
+        if related_objects:
+            for obj in related_objects:
+                if  obj.get('id') and obj.get('id') != self.id:
+                    try:
+                        return self.get(obj.get('id'), self.http_client)
+                    except:
+                        pass
+
+        return None
+
