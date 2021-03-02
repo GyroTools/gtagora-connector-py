@@ -95,6 +95,32 @@ class Agora:
         return False
 
     # Project
+    def create_project(self, name: str, description: str, copy_from_id: int =None):
+        """Creates a new project. If "copy_from_id" is specified then all the settings are
+           copied from the project with the given id
+
+        Returns:
+            Project -- the new project
+        """
+        data = dict()
+        data['name'] = name
+        data['description'] = description
+        response = self.http_client.post(Project.BASE_URL, json=data, timeout=60)
+        if response.status_code == 201:
+            data = response.json()
+            project = Project.from_response(data, http_client=self.http_client)
+
+            if copy_from_id:
+                try:
+                    other_project = self.get_project(copy_from_id)
+                    project.copy_settings_from(other_project, copy_members=True, copy_tasks=True, copy_hosts=True)
+                except:
+                    print(f'WARNING: Cannot copy the settings from the project with id={copy_from_id}')
+
+            return project
+        else:
+            raise AgoraException(f'Could not create the project {name}: status = {response.status_code}')
+
     def get_projects(self, filters=None):
         return Project.get_list(filters, http_client=self.http_client)
 
@@ -165,10 +191,6 @@ class Agora:
     def get_dataset(self, dataset_id):
         return Dataset.get(dataset_id, http_client=self.http_client)
 
-    # Tasks
-    def get_tasks(self):
-        return Task.get_list(None, http_client=self.http_client)
-
     def get_task(self, task_id):
         return Task.get(task_id, http_client=self.http_client)
 
@@ -177,30 +199,6 @@ class Agora:
         response = self.http_client.delete(url, timeout=60)
         if response.status_code != 204:
             raise AgoraException('Cannot delete the task: ' + response.text)
-
-    def export_tasks(self, file):
-        url = Task.BASE_URL
-        response = self.http_client.get(url)
-        if response.status_code == 200:
-            data = response.json()
-            for d in data:
-                d.pop('context_help', None)
-
-            with open(file, 'w') as outfile:
-                json.dump(data, outfile)
-
-    def import_tasks(self, file):
-        tasks = self.load_tasks(file)
-        for task in tasks:
-            try:
-                task.create()
-            except AgoraException as e:
-                print(f'Warning: Could not import the task {task.name}: {str(e)}')
-
-    def load_tasks(self, file):
-        with open(file) as json_file:
-            data = json.load(json_file)
-            return Task.get_list_from_data(data)
 
     # Search
     def search_series(self, aSearchString):

@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 from gtagora.exception import AgoraException
 from gtagora.models.base import BaseModel
@@ -92,6 +93,50 @@ class Task(BaseModel):
 
     def syntax(self):
         print(self._get_run_cmd())
+
+    def export(self, dir: [str, Path]=None, file: [str, Path]=None):
+        if not dir and not file:
+            raise AgoraException(f'Please pass an output directory or an output filepath as argument')
+
+        if dir and isinstance(dir, str):
+            dir = Path(dir)
+
+        if file and isinstance(file, str):
+            file = Path(file)
+
+        if dir and not dir.exists():
+            raise AgoraException(f'The output directory does not exist')
+
+        url = f'{self.BASE_URL}{self.id}/export/'
+        response = self.http_client.get(url, timeout=60)
+        if response.status_code != 200:
+            raise AgoraException(f'Cannot export the task: status = {response.status_code}')
+        data = response.json()
+
+        if not file:
+            filename = data.get('name')
+            if not filename:
+                raise AgoraException(f'Cannot determine the name of the task')
+            filename = filename.replace("/", "_")
+            filename = self.to_valid_filename(filename) + '.json'
+            file = Path(dir) / Path(filename)
+
+        with open(str(file), 'w') as fp:
+            json.dump(data, fp)
+
+    def copy_to_project(self, project_id):
+        url = f'/api/v2/project/{project_id}/task/{self.id}/copy/'
+        response = self.http_client.post(url, json={}, timeout=60)
+
+        if response.status_code != 200:
+            raise AgoraException(f'Cannot copy the task: status = {response.status_code}')
+
+    def move_to_project(self, project_id):
+        url = f'/api/v2/project/{project_id}/task/{self.id}/move/'
+        response = self.http_client.post(url, json={}, timeout=60)
+
+        if response.status_code != 200:
+            raise AgoraException(f'Cannot copy the task: status = {response.status_code}')
 
     def _get_run_cmd(self):
         cmd = 'task.run('

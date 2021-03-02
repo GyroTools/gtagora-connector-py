@@ -1,8 +1,13 @@
+import json
+
 from gtagora.exception import AgoraException
+from gtagora.models.Host import Host
 from gtagora.models.base import BaseModel
 from gtagora.models.dataset import Dataset
 from gtagora.models.folder import Folder
+from gtagora.models.project_role import ProjectRole
 from gtagora.models.series import Series
+from gtagora.models.task import Task
 from gtagora.utils import remove_illegal_chars
 
 from pathlib import Path
@@ -10,6 +15,18 @@ from pathlib import Path
 
 class Project(BaseModel):
     BASE_URL = '/api/v2/project/'
+
+    ROLE_MANAGER = 1
+    ROLE_SCIENTIST = 2
+    ROLE_USER = 3
+    ROLE_OBSERVER = 4
+
+    PROJECT_ROLE = (
+        (ROLE_MANAGER, 'manager'),
+        (ROLE_SCIENTIST, 'scientist'),
+        (ROLE_USER, 'user'),
+        (ROLE_OBSERVER, 'observer')
+        )
 
     def set_name(self, name):
         url = self.BASE_URL + str(self.id) + '/'
@@ -30,8 +47,62 @@ class Project(BaseModel):
         url = f'{self.BASE_URL}{self.id}/exam/?limit=10000000000'
         return self._get_object_list(url, filters, Series)
 
+    def get_tasks(self):
+        url = f'{self.BASE_URL}{self.id}/task/?limit=10000000000'
+        return self._get_object_list(url, None, Task)
+
+    def import_tasks(self, file):
+        with open(file) as json_file:
+            data = json.load(json_file)
+
+        url = f'{self.BASE_URL}{self.id}/task/imp/'
+        response = self.http_client.post(url, json=data, timeout=60)
+        if response.status_code != 200:
+            raise AgoraException(f'Could not import the task: status = {response.status_code}')
+
+    def get_hosts(self):
+        url = f'{self.BASE_URL}{self.id}/host/?limit=10000000000'
+        return self._get_object_list(url, None, Host)
+
     def get_root_folder(self):
         return Folder.get(self.root_folder, http_client=self.http_client)
+
+    def add_member(self, user_id: int, role: int):
+        role_id = None
+        roles = self.get_roles()
+        for r in roles:
+            if r.id == role:
+                role_id = r.id
+                break
+        if not role_id:
+            raise AgoraException('Unknown role')
+
+        url = f'/api/v2/projectmembership/'
+        data = dict()
+        data['project'] = self.id
+        data['role'] = role_id
+        data['user'] = user_id
+        response = self.http_client.post(url, json=data, timeout=60)
+        if response.status_code != 201:
+            raise AgoraException(f'Could not add member: status = {response.status_code}')
+
+    def copy_settings_from(self, other_project, copy_members=True, copy_tasks=True, copy_hosts=True):
+        if copy_members:
+            for membership in other_project.memberships:
+                self.add_member(membership.get('user'), membership.get('role'))
+
+        if copy_tasks:
+            tasks = other_project.get_tasks()
+            for task in tasks:
+                task.copy_to_project(self.id)
+
+        if copy_hosts:
+            hosts = other_project.get_hosts()
+            for host in hosts:
+                host.copy_to_project(self.id)
+
+    def get_roles(self):
+        return self._get_object_list(ProjectRole.BASE_URL, None, ProjectRole)
 
     @property
     def display_name(self):

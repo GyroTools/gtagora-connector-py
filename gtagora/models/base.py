@@ -1,4 +1,6 @@
 import pprint
+import unicodedata
+import re
 
 from gtagora.exception import AgoraException
 
@@ -68,6 +70,26 @@ class BaseModel:
         if response.status_code == 204:
             return True
         raise AgoraException('Could not delete FolderItem')
+
+    def to_valid_filename(self, value, allow_unicode=False):
+        """
+        Taken from https://github.com/django/django/blob/master/django/utils/text.py
+        Convert to ASCII if 'allow_unicode' is False. Convert spaces or repeated
+        dashes to single dashes. Remove characters that aren't alphanumerics,
+        underscores, or hyphens. Convert to lowercase. Also strip leading and
+        trailing whitespace, dashes, and underscores.
+        """
+        value = str(value)
+        if allow_unicode:
+            value = unicodedata.normalize('NFKC', value)
+        else:
+            value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
+        value = re.sub(r'[^\w\s-]', '', value.lower())
+        return re.sub(r'[-\s]+', '-', value).strip('-_')
+
+    def to_dict(self):
+        excluded_keys = ['http_client']
+        return dict( (key, value) for (key, value) in self.__dict__.items() if key not in excluded_keys and not key.startswith('__'))
 
     def _set_values(self, model_dict):
         for key, value in model_dict.items():
