@@ -102,6 +102,13 @@ project = agora.get_project(2)
 exams = project.get_exams()
 ```
 
+Empty the trash
+
+```python
+project = agora.get_project(2)
+project.empty_trash()
+```
+
 ### Working with folders
 
 Get the root folder of the \"My Agora\" project:
@@ -444,12 +451,6 @@ users = agora.get_groups()
 ```
 
 ### Various
-
-Empty the trash
-
-```python
-agora.empty_trash()
-```
 
 The members of any Agora object can be printed to the console with the display function
 ```python
