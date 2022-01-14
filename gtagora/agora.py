@@ -1,23 +1,21 @@
+from pathlib import Path
+from typing import List
+
+import urllib3
+
 from gtagora.exception import AgoraException
 from gtagora.http.client import Client
 from gtagora.http.connection import ApiKeyConnection, TokenConnection
 from gtagora.models.dataset import Dataset
 from gtagora.models.exam import Exam
+from gtagora.models.folder import Folder
+from gtagora.models.group import Group
+from gtagora.models.import_package import import_data
+from gtagora.models.patient import Patient
 from gtagora.models.project import Project
 from gtagora.models.series import Series
-from gtagora.models.folder import Folder
-from gtagora.models.patient import Patient
-from gtagora.models.user import User
-from gtagora.models.group import Group
 from gtagora.models.task import Task
-from gtagora.models.trash import Trash
-from gtagora.models.import_package import import_data
-
-import json
-import urllib3
-from pathlib import Path
-from typing import List
-
+from gtagora.models.user import User
 from gtagora.models.version import Version
 from gtagora.utils import validate_url
 
@@ -312,11 +310,6 @@ class Agora:
             return data
 
         raise AgoraException('Could not get the API key')
-
-    # Trash
-    def empty_trash(self):
-        trash = Trash()
-        trash.empty()
 
     def get_version(self):
         """Returns the Agora version

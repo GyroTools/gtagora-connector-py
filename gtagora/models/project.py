@@ -8,6 +8,7 @@ from gtagora.models.folder import Folder
 from gtagora.models.project_role import ProjectRole
 from gtagora.models.series import Series
 from gtagora.models.task import Task
+from gtagora.models.trash import Trash
 from gtagora.utils import remove_illegal_chars
 
 from pathlib import Path
@@ -103,6 +104,11 @@ class Project(BaseModel):
 
     def get_roles(self):
         return self._get_object_list(ProjectRole.BASE_URL, None, ProjectRole)
+
+    # Trash
+    def empty_trash(self):
+        trash = Trash()
+        trash.empty(self.id)
 
     @property
     def display_name(self):

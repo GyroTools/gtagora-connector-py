@@ -115,6 +115,9 @@ class ImportPackage(BaseModel):
         return input_files, target_files
 
     def _prepare_relations(self, relations, input_files, target_files):
+        if not relations:
+            return None
+
         new_relations = dict()
         all_related_files = []
         for relation_target, related_files in relations.items():

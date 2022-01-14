@@ -8,7 +8,7 @@ class Version(BaseModel):
     BASE_URL = '/api/v1/version/'
 
     def is_dev(self):
-        return self.version == 'DEV'
+        return self.version.lower() == 'dev'
 
     def is_higher_than(self, version):
         return LooseVersion(self.version) > LooseVersion(version)
