@@ -19,8 +19,8 @@ class Datafile(BaseModel):
         # if os.path.isdir(filename):
         #     filename = os.path.join(filename, self.rel_filename)
 
-        path.mkdir(parents=True, exist_ok=True)
         final_path = path / self.original_filename
+        final_path.parent.mkdir(parents=True, exist_ok=True)
 
         if not self.check_for_existing_file(final_path):
             url = f'{self.BASE_URL}{self.id}/download/'
