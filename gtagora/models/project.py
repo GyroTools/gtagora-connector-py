@@ -1,6 +1,7 @@
 import json
 
 from gtagora.exception import AgoraException
+from gtagora.models.exam import Exam
 from gtagora.models.host import Host
 from gtagora.models.base import BaseModel
 from gtagora.models.dataset import Dataset
@@ -46,7 +47,7 @@ class Project(BaseModel):
             raise AgoraException('The filter must be a dict')
 
         url = f'{self.BASE_URL}{self.id}/exam/?limit=10000000000'
-        return self._get_object_list(url, filters, Series)
+        return self._get_object_list(url, filters, Exam)
 
     def get_tasks(self):
         url = f'{self.BASE_URL}{self.id}/task/?limit=10000000000'
