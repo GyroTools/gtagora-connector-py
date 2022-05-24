@@ -126,6 +126,8 @@ class BaseModel:
                     object_list.append(object_class.from_response(r))
             elif isinstance(data, list):
                 object_list = [object_class.from_response(d) for d in data]
+            else:
+                return object_class.from_response(data)
 
             return object_list
 

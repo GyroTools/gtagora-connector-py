@@ -3,6 +3,7 @@ import os
 from gtagora.exception import AgoraException
 from gtagora.models.base import BaseModel, LinkToFolderMixin
 from gtagora.models.datafile import Datafile
+from gtagora.models.image_info import ImageInfo
 from gtagora.models.parameter import Parameter
 
 
@@ -58,6 +59,11 @@ class Dataset(LinkToFolderMixin, BaseModel):
         url = f'{self.BASE_URL}{self.id}/parameter/?description__name={name}&limit=10000000000'
         pars = self._get_object_list(url, None, Parameter)
         return pars[0] if pars else None
+
+    def get_info(self):
+        url = f'{self.BASE_URL}{self.id}/image_info/'
+        info = self._get_object_list(url, None, ImageInfo)
+        return info if info else None
 
     def search_parameter(self, search_string):
         url = f'{self.BASE_URL}{self.id}/parameter/?search={search_string}&limit=10000000000'
