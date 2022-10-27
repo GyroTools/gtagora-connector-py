@@ -13,6 +13,8 @@ on:
   push:
     branches:
       - master
+    tags:
+      - 'v*'
   release:
     types: [published]
 
