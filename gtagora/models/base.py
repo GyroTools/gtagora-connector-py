@@ -91,6 +91,24 @@ class BaseModel:
         excluded_keys = ['http_client']
         return dict( (key, value) for (key, value) in self.__dict__.items() if key not in excluded_keys and not key.startswith('__'))
 
+    def content_type(self):
+        from gtagora.models.exam import Exam
+        from gtagora.models.folder import Folder
+        from gtagora.models.series import Series
+        from gtagora.models.dataset import Dataset
+        from gtagora.models.patient import Patient
+
+        if isinstance(self, Exam):
+            return 'exam'
+        elif isinstance(self, Folder):
+            return 'folder'
+        elif isinstance(self, Series):
+            return 'serie'
+        elif isinstance(self, Dataset):
+            return 'dataset'
+        elif isinstance(self, Patient):
+            return 'patient'
+
     def _set_values(self, model_dict):
         for key, value in model_dict.items():
             setattr(self, key, value)
@@ -204,6 +222,7 @@ class LinkToFolderMixin:
 
         return None
 
+
 class SearchMixin:
 
     @classmethod
@@ -222,3 +241,28 @@ class SearchMixin:
             raise AgoraException(f'Search unsuccessful: {response.text}')
 
         return []
+
+
+class TagMixin:
+    def tag(self, tag):
+        from gtagora.models.tag import Tag
+        from gtagora.models.tag import TagInstance
+
+        if isinstance(tag, Tag):
+            tag_id = tag.id
+        elif isinstance(tag, int):
+            tag_id = tag
+        else:
+            raise AgoraException('The input must either be a tag or a tag id')
+
+        url = TagInstance.BASE_URL
+        post_data = {'tag_definition': tag_id, 'tagged_object_content_type': self.content_type(), 'tagged_object_id': self.id}
+        response = self.http_client.post(url, post_data)
+        if response.status_code == 201:
+            instances = TagInstance.get_list_from_data(response.json())
+            if instances:
+                return instances[0]
+            else:
+                return None
+
+        raise AgoraException('Could not tag the object')

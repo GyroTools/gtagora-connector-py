@@ -1,9 +1,9 @@
 from gtagora.exception import AgoraException
-from gtagora.models.base import BaseModel, DownloadDatasetMixin
+from gtagora.models.base import BaseModel, DownloadDatasetMixin, TagMixin
 from gtagora.models.exam import Exam
 
 
-class Patient(BaseModel, DownloadDatasetMixin):
+class Patient(BaseModel, TagMixin, DownloadDatasetMixin):
 
     BASE_URL = '/api/v1/patient/'
 

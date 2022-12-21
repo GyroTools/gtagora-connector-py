@@ -1,10 +1,10 @@
 from gtagora.exception import AgoraException
-from gtagora.models.base import LinkToFolderMixin, BaseModel, DownloadDatasetMixin, SearchMixin
+from gtagora.models.base import LinkToFolderMixin, BaseModel, DownloadDatasetMixin, SearchMixin, TagMixin
 from gtagora.models.dataset import Dataset
 from gtagora.models.timeline import TimelineItem
 
 
-class Series(LinkToFolderMixin, DownloadDatasetMixin, BaseModel, SearchMixin):
+class Series(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, BaseModel, SearchMixin):
     BASE_URL = '/api/v1/serie/'
     BASE_URL_V2 = '/api/v2/series/'
 

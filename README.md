@@ -260,6 +260,37 @@ series = agora.get_series(76)
 dataset = agora.get_dataset(158)
 ```
 
+### Tag Objects
+
+Get all tags the current user has access to:
+
+```python
+tags = agora.get_tags()
+```
+
+Get a tag by id or name:
+
+```python
+tag1 = agora.get_tag(id=3)
+tag2 = agora.get_tag(name='good')
+```
+
+Tag an agora object:
+
+```python
+exam = agora.get_exam(12)
+series = agora.get_series(24)
+dataset = agora.get_dataset(145)
+folder = agora.get_folder(15)
+patient = agora.get_patient(2)
+
+tag_instance1 = exam.tag(tag1)
+tag_instance2 = series.tag(tag1)
+tag_instance3 = dataset.tag(tag1)
+tag_instance4 = folder.tag(tag1)
+tag_instance5 = patient.tag(tag1)
+```
+
 ### Download data
 
 Download all data from a folder 

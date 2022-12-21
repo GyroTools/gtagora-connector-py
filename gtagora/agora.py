@@ -14,6 +14,7 @@ from gtagora.models.import_package import import_data
 from gtagora.models.patient import Patient
 from gtagora.models.project import Project
 from gtagora.models.series import Series
+from gtagora.models.tag import Tag
 from gtagora.models.task import Task
 from gtagora.models.user import User
 from gtagora.models.version import Version
@@ -326,6 +327,20 @@ class Agora:
             Version -- A Version object
         """
         return Version.get(http_client=self.http_client)
+
+    def get_tags(self):
+        return Tag.get_list(http_client=self.http_client)
+
+    def get_tag(self, id=None, name=None):
+        if not id and not name:
+            raise AgoraException('please give a name or id as input')
+
+        if id:
+            return Tag.get(id, http_client=self.http_client)
+        elif name:
+            tags = self.get_tags()
+            return next((x for x in tags if x.label == name), None)
+
 
     def close(self):
         pass
