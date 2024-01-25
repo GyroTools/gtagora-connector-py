@@ -76,6 +76,9 @@ class Client:
         if len(target_files) < len(files):
             raise AgoraException('target_files list too short.')
 
+        total_size = self.get_total_size(files) if progress else 0
+        size_uploaded = 0
+
         for index, cur_file in enumerate(files):
             print(f"Upload file: {cur_file} > {url}")
 
@@ -94,7 +97,7 @@ class Client:
             with open(cur_file, mode='rb') as file:
                 for chunk in range(0, nof_chunks):
                     if progress:
-                        self.print_progress(index, len(files), chunk, nof_chunks)
+                        self.print_progress(index, len(files), size_uploaded, total_size, chunk, nof_chunks)
                     data = file.read(self.UPLOAD_CHUCK_SIZE)
                     files = {'file': (filename, data)}
                     form = {
@@ -112,13 +115,24 @@ class Client:
                         raise AgoraException(
                             f"Failed to upload chunk {chunk} of file {cur_file}. Status code: {response.status_code}")
 
+                    if progress:
+                        size_uploaded += len(data)
+
         print(f"Upload done")
         return True
 
-    def print_progress(self, curFile, nof_file, chunk, nof_chunks):
+    def get_total_size(self, files):
+        total_size = 0
+        for file in files:
+            total_size += os.path.getsize(file)
+        return total_size
+
+    def print_progress(self, curFile, nof_file, size_uploaded, total_size, chunk, nof_chunks):
         length = 40
-        done = int((curFile + 1) / nof_file * length)
-        bar = 'X' * done + '-' * (length - done)
-        print('\r%s file %d of %d, chunk %d of %d' % (bar, curFile + 1, nof_file, chunk + 1, nof_chunks), end='\r')
+        done = int(size_uploaded / total_size * length)
+        bar = 'o' * done + '-' * (length - done)
+        print('\r%s file %d of %d, chunk %d of %d' % (bar, curFile + 1, nof_file, chunk + 1, nof_chunks), end='', flush=True)
         if curFile + 1 == nof_file and chunk + 1 == nof_chunks:
+            bar = 'o' * length
+            print('\r%s file %d of %d, chunk %d of %d' % (bar, curFile + 1, nof_file, chunk + 1, nof_chunks), end='', flush=True)
             print()
