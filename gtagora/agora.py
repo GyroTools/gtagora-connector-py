@@ -10,7 +10,7 @@ from gtagora.models.dataset import Dataset
 from gtagora.models.exam import Exam
 from gtagora.models.folder import Folder
 from gtagora.models.group import Group
-from gtagora.models.import_package import import_data
+from gtagora.models.import_package import import_data, resume_import
 from gtagora.models.patient import Patient
 from gtagora.models.project import Project
 from gtagora.models.series import Series
@@ -215,7 +215,7 @@ class Agora:
 
     # Import
     def upload(self, paths: List[Path], target_folder_id: Folder = None, json_import_file: Path = None, wait=True,
-               progress=False, relations: dict =None):
+               verbose=False, relations: dict =None, progress:Path = None):
         """Upload and import files to Agora
 
         Arguments:
@@ -239,7 +239,11 @@ class Agora:
                 raise FileNotFoundError(path.as_posix())
 
         return import_data(self.http_client, paths=paths, target_folder_id=target_folder_id,
-                           json_import_file=json_import_file, wait=wait, progress=progress, relations=relations)
+                           json_import_file=json_import_file, wait=wait, verbose=verbose, relations=relations,
+                           progress=progress)
+
+    def resume_upload(self, progress_file: Path):
+        return resume_import(self.http_client, progress=progress_file)
 
     def import_directory(self, directory: Path, target_folder_id: int = None, json_import_file: Path = None, wait=True,
                          progress=False, relations: dict =None):

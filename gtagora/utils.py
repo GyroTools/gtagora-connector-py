@@ -1,9 +1,69 @@
+import json
 import os
 import zipfile
 import hashlib
+from dataclasses import dataclass, is_dataclass, asdict
 from itertools import zip_longest
 from pathlib import Path
+from typing import List, Union
 from urllib.parse import urlparse
+
+
+class EnhancedJSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, Path):
+            return str(o)
+        if is_dataclass(o):
+            return asdict(o)
+        return super().default(o)
+
+@dataclass
+class UploadFile:
+    id: int
+    file: Path
+    target: str
+    zip: bool = False
+    nr_chunks: Union[int, None] = None
+    chunks_completed: Union[int, None] = None
+    identifier: Union[str, None] = None
+    uploaded: bool = False
+    imported: bool = False
+
+    def json(self):
+        return json.dumps(self, cls=EnhancedJSONEncoder)
+
+
+@dataclass
+class UploadState:
+    import_package: int
+    files: List[UploadFile]
+    target_folder_id: Union[dict, None] = None
+    json_import_file: Union[Path, None] = None
+    relations: Union[dict, None] = None
+    wait: bool = True
+    verbose: bool = False
+    timeout: Union[int, None] = None
+
+    def json(self, indent=None):
+        return json.dumps(self, cls=EnhancedJSONEncoder, indent=indent)
+
+    def save(self, file: Path, indent=2):
+        if file:
+            with file.open('w') as f:
+                json.dump(self, f, cls=EnhancedJSONEncoder, indent=indent)
+
+    @staticmethod
+    def from_file(file: Path):
+        if file and file.exists():
+            with file.open('r') as f:
+                data = json.load(f)
+                state = UploadState(**data)
+                state.json_import_file = Path(state.json_import_file) if state.json_import_file else None
+                files = [UploadFile(**f) for f in data['files']]
+                for f in files:
+                    f.file = Path(f.file)
+                state.files = files
+                return state
 
 
 def get_file_info(path):
@@ -29,56 +89,50 @@ class ZipUploadFiles:
     MAX_FILE_LIMIT = 100*1024*1024
     MAX_ZIP_FILE_SIZE = 2*1024*1024*1024
 
-    def __init__(self, input_files, target_files):
+    def __init__(self, input_files: List[UploadFile]):
         self.input_files = input_files
-        self.target_files = target_files if target_files else []
         self._zip_is_required = False
 
-    def create_zip(self, path: Path):
-        files_to_zip = self._create_file_list()
+    def create_zip(self, path: Path, single_file=False):
+        files_to_zip = self._create_file_list(single_file=single_file)
 
         if self._zip_is_required is False:
-            return self.input_files, self.target_files
+            return self.input_files
 
         index = 0
-        input_files = []
-        target_files = []
+        zip_files = []
 
         while index < len(files_to_zip):
 
             zip_filename = f'upload_{index}.agora_upload'
             zip_path = path / zip_filename
-            input_files.append(zip_path)
-            target_files.append(zip_filename)
+            zip_files.append(UploadFile(id=len(zip_files), file=zip_path, target=zip_filename))
 
             with zipfile.ZipFile(zip_path, 'w', compression=zipfile.ZIP_STORED) as z:
-                for file, target_file, do_zip in files_to_zip[index:]:
+                for file, do_zip in files_to_zip[index:]:
                     if do_zip:
-                        z.write(file, target_file)
+                        z.write(file.file, file.target)
                     else:
-                        input_files.append(file)
-                        target_files.append(target_file)
+                        zip_files.append(UploadFile(id=len(zip_files), file=file.file, target=file.target))
                     index += 1
 
                     compressed_size = sum([info.compress_size for info in z.infolist()])
-                    if compressed_size > self.MAX_ZIP_FILE_SIZE:
+                    if not single_file and compressed_size > self.MAX_ZIP_FILE_SIZE:
                         break
+        return zip_files
 
-        return input_files, target_files
+    def _create_file_list(self, single_file=False):
 
-    def _create_file_list(self):
-
-        def create_entry(file, target_file):
-            size = os.path.getsize(file)
-            do_zip = size < self.MAX_FILE_LIMIT
+        def create_entry(file: UploadFile, single_file=False):
+            size = file.file.stat().st_size
+            do_zip = single_file or size < self.MAX_FILE_LIMIT
 
             if do_zip:
                 self._zip_is_required = True
 
-            return file, target_file, do_zip
+            return file, do_zip
 
-        file_list = [create_entry(file, target_file)
-                     for file, target_file in zip_longest(self.input_files, self.target_files)]
+        file_list = [create_entry(file, single_file=single_file) for file in self.input_files]
         return file_list
 
 
@@ -104,6 +158,21 @@ def sha1(path: Path):
             sha1.update(data)
 
     return sha1.hexdigest()
+
+
+def sha256(path: Path):
+    sha256 = hashlib.sha256()
+    BUF_SIZE = 1024 * 1024
+
+    with path.open('rb') as f:
+        while True:
+            data = f.read(BUF_SIZE)
+            if not data:
+                break
+            sha256.update(data)
+
+    return sha256.hexdigest()
+
 
 def validate_url(url):
     # check if the url has a scheme. If not then add it

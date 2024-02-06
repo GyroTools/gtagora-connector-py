@@ -1,10 +1,16 @@
+import json
 import math
 import os
+import time
 import uuid
+from dataclasses import dataclass, make_dataclass
+from pathlib import Path
+from typing import Union, List
 
 import requests
 
 from gtagora.exception import AgoraException
+from gtagora.utils import sha256, UploadFile, UploadState
 
 
 class Client:
@@ -56,75 +62,120 @@ class Client:
                 for chunk in response.iter_content(self.DOWNLOAD_CHUNK_SIZE):
                     file.write(chunk)
 
-    def upload(self, url, input_files, target_files=None, progress=False):
+    def upload(self, url, files: List[UploadFile], verbose=False, verify_hash=True, max_retries=5, progress: Path = None):
+        if progress and not progress.exists():
+            raise AgoraException(f"progress file {progress} does not exist")
+
         response = self.get('/api/v1/version/')
         if response.status_code == 200:
             data = response.json()
-            print(f"Ping {data}")
         else:
-            print("Ping failed")
+            raise AgoraException("cannot connect to the Agora server")
 
-        if isinstance(input_files, str):
-            files = []
-            files.append(input_files)
-        else:
-            files = input_files
-
-        if not target_files:
-            target_files = [os.path.basename(file) for file in files]
-
-        if len(target_files) < len(files):
-            raise AgoraException('target_files list too short.')
-
-        total_size = self.get_total_size(files) if progress else 0
+        total_size = self.get_total_size(files) if verbose else 0
         size_uploaded = 0
 
+        state = UploadState.from_file(progress) if progress else None
+
         for index, cur_file in enumerate(files):
-            print(f"Upload file: {cur_file} > {url}")
+            if not cur_file.file.exists() or not cur_file.file.is_file():
+                raise AgoraException('Could not open file ' + str(cur_file.file))
 
-            if not os.path.isfile(cur_file):
-                raise AgoraException('Could not open file ' + cur_file)
-
-            filesize = os.path.getsize(cur_file)
+            filesize = cur_file.file.stat().st_size
             nof_chunks = math.ceil(filesize / self.UPLOAD_CHUCK_SIZE)
+            files[index].nr_chunks = nof_chunks
 
-            head, tail = os.path.split(cur_file)
-            filename = tail
-            target_filename = target_files[index]
+            filename = cur_file.file.name
+            target_filename = cur_file.target
 
-            uid = str(uuid.uuid4())
+            if files[index].identifier is not None:
+                uid = files[index].identifier
+            else:
+                uid = str(uuid.uuid4())
+                files[index].identifier = uid
 
-            with open(cur_file, mode='rb') as file:
-                for chunk in range(0, nof_chunks):
-                    if progress:
-                        self.print_progress(index, len(files), size_uploaded, total_size, chunk, nof_chunks)
-                    data = file.read(self.UPLOAD_CHUCK_SIZE)
-                    files = {'file': (filename, data)}
-                    form = {
-                        'description': '',
-                        'flowChunkNumber': str(chunk),
-                        'flowChunkSize': str(self.UPLOAD_CHUCK_SIZE),
-                        'flowCurrentChunkSize': str(len(data)),
-                        'flowTotalSize': str(filesize),
-                        'flowIdentifier': uid,
-                        'flowFilename': target_filename,
-                        'flowRelativePath': target_filename,
-                        'flowTotalChunks': str(nof_chunks)}
-                    response = self.post(url, files=files, data=form, timeout=self.UPLOAD_TIMEOUT)
-                    if response.status_code != 200:
-                        raise AgoraException(
-                            f"Failed to upload chunk {chunk} of file {cur_file}. Status code: {response.status_code}")
+            start_chunk = files[index].chunks_completed if files[index].chunks_completed is not None else 0
 
-                    if progress:
-                        size_uploaded += len(data)
+            hash_retry_count = 0
+            while hash_retry_count < max_retries:
+                with open(cur_file.file, mode='rb') as file:
+                    if start_chunk > 0:
+                        file.seek(start_chunk * self.UPLOAD_CHUCK_SIZE, os.SEEK_SET)
+                    for chunk in range(start_chunk, nof_chunks):
+                        retry_count = 0
+                        while retry_count < max_retries:
+                            try:
+                                if verbose:
+                                    self.print_progress(index, len(files), size_uploaded, total_size, chunk, nof_chunks)
+                                data = file.read(self.UPLOAD_CHUCK_SIZE)
+                                files_to_upload = {'file': (filename, data)}
+                                form = {
+                                    'description': '',
+                                    'flowChunkNumber': str(chunk),
+                                    'flowChunkSize': str(self.UPLOAD_CHUCK_SIZE),
+                                    'flowCurrentChunkSize': str(len(data)),
+                                    'flowTotalSize': str(filesize),
+                                    'flowIdentifier': uid,
+                                    'flowFilename': target_filename,
+                                    'flowRelativePath': target_filename,
+                                    'flowTotalChunks': str(nof_chunks)}
+                                response = self.post(url, files=files_to_upload, data=form, timeout=self.UPLOAD_TIMEOUT)
+                                if response.status_code != 200:
+                                    raise AgoraException(
+                                        f"Failed to upload chunk {chunk} of file {cur_file}. Status code: {response.status_code}")
 
-        print(f"Upload done")
+                                if verbose:
+                                    size_uploaded += len(data)
+                                break
+                            except requests.exceptions.RequestException as e:
+                                # Connection error, retry after waiting for a few seconds
+                                retry_count += 1
+                                delay = 2 ** retry_count
+                                time.sleep(delay)
+                        else:
+                            raise AgoraException(f"Failed to upload chunk {chunk} after {max_retries} retries.")
+
+                        files[index].chunks_completed = chunk+1
+                        if state:
+                            self._update_state(state, files[index])
+                            state.save(progress)
+
+                if verify_hash:
+                    hash_local = sha256(cur_file.file)
+                    hash_server = None
+                    hash_check_success = False
+                    while hash_server is None:
+                        response = self.get(f'/api/v1/flowfile/{uid}/')
+                        if response.status_code == 200:
+                            data = response.json()
+                            if data.get('state') == 2:
+                                hash_server = data.get('content_hash')
+                                if hash_local != hash_server:
+                                    continue
+                                else:
+                                    hash_check_success = True
+                                    files[index].uploaded = True
+                                    if state:
+                                        self._update_state(state, files[index])
+                                        state.save(progress)
+                                    break
+                            elif data.get('state') == 3 or data.get('state') == 5:
+                                raise AgoraException(f"Failed to upload {cur_file}: there was an error joining the chunks")
+                        else:
+                            raise AgoraException(f"Failed to get the hash of the file from the server")
+                    if hash_check_success:
+                        break
+            else:
+                raise AgoraException(f"Failed to upload {cur_file}: the hash of the file does not match the server hash")
+
+        if verbose:
+            print(f"Upload done")
         return True
 
-    def get_total_size(self, files):
+    def get_total_size(self, files: List[UploadFile]):
         total_size = 0
         for file in files:
-            total_size += os.path.getsize(file)
+            total_size += file.file.stat().st_size
         return total_size
 
     def print_progress(self, curFile, nof_file, size_uploaded, total_size, chunk, nof_chunks):
@@ -136,3 +187,9 @@ class Client:
             bar = 'o' * length
             print('\r%s file %d of %d, chunk %d of %d' % (bar, curFile + 1, nof_file, chunk + 1, nof_chunks), end='', flush=True)
             print()
+
+    def _update_state(self, state: UploadState, file: UploadFile):
+        index = next((i for i, item in enumerate(state.files) if item.id == file.id), None)
+        if index:
+            state.files[index] = file
+        return state
