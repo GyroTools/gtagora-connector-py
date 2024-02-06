@@ -54,11 +54,13 @@ class ImportPackage(BaseModel):
         base_url = '/api/v1/import/' + str(self.id) + '/'
         url = base_url + 'upload/'
 
+        total_size = sum([f.size for f in state.files if not f.uploaded])
         zip_packages = self._create_zip_packages(state)
 
+        if state.verbose:
+            print("uploading...")
+
         if len(zip_packages) > 0:
-            if state.verbose:
-                print("uploading small files as zip..")
             for package in zip_packages:
                 with tempfile.TemporaryDirectory() as temp_dir:
                     zip_upload = ZipUploadFiles(package)
@@ -69,8 +71,6 @@ class ImportPackage(BaseModel):
 
         # create a list of the files which are uploaded unzipped. The entries of the new list are a reference to the
         # original list so that the state is changed as well
-        if state.verbose:
-            print("uploading large files..")
         files_to_upload_indices = [i for i, f in enumerate(state.files) if not f.zip and not f.uploaded]
         files_to_upload = [state.files[i] for i in files_to_upload_indices]
         if files_to_upload and len(files_to_upload) > 0:
@@ -83,7 +83,7 @@ class ImportPackage(BaseModel):
                 start_time = datetime.datetime.now()
                 while (datetime.datetime.now() - start_time).seconds < state.timeout if state.timeout else True:
                     data = self.progress()
-                    if data['state'] == 5 or data['state'] == -1:
+                    if (data['state'] == 5 and data['progress'] == 100) or data['state'] == -1:
                         nr_datafiles_imported = self._update_import_state(state)
                         state.save(progress)
                         if state.verbose:
@@ -153,8 +153,11 @@ class ImportPackage(BaseModel):
             datafiles = []
             for entry in data:
                 datafiles.extend(entry.get('datafiles', []))
+            unique_datafiles_dict = {d['id']: d for d in datafiles}
+            datafiles = list(unique_datafiles_dict.values())
+
             for datafile in datafiles:
-                indices = [i for i, f in enumerate(state.files) if Path(f.target).name == datafile['name']]
+                indices = [i for i, f in enumerate(state.files) if Path(f.target).name == Path(datafile['name']).name and f.imported is False]
                 if indices and len(indices) > 0:
                     for index in indices:
                         local_sha1 = sha1(Path(state.files[index].file))
@@ -240,7 +243,8 @@ class ImportPackage(BaseModel):
         input_files, target_files = self._prepare_paths_to_upload(input_files)
         relations = self._prepare_relations(relations, input_files, target_files)
         files = [UploadFile(id=index, file=Path(file), target=str(target), zip=len(input_files) > 5 and self._do_zip_file(file),
-                  nr_chunks=None, chunks_completed=None, identifier=None, uploaded=False, imported=False)
+                 size=Path(file).stat().st_size, nr_chunks=None,
+                 chunks_completed=None, identifier=None, uploaded=False, imported=False)
                  for index, (file, target) in enumerate(zip(input_files, target_files))]
         state = UploadState(import_package=self.id, files=files, relations=relations)
         return state

@@ -23,6 +23,7 @@ class UploadFile:
     file: Path
     target: str
     zip: bool = False
+    size: Union[int, None] = None
     nr_chunks: Union[int, None] = None
     chunks_completed: Union[int, None] = None
     identifier: Union[str, None] = None
@@ -106,19 +107,25 @@ class ZipUploadFiles:
 
             zip_filename = f'upload_{index}.agora_upload'
             zip_path = path / zip_filename
-            zip_files.append(UploadFile(id=len(zip_files), file=zip_path, target=zip_filename))
+            zip_id = len(zip_files)
+            zip_files.append(UploadFile(id=zip_id, file=zip_path, target=zip_filename))
 
             with zipfile.ZipFile(zip_path, 'w', compression=zipfile.ZIP_STORED) as z:
                 for file, do_zip in files_to_zip[index:]:
                     if do_zip:
                         z.write(file.file, file.target)
                     else:
-                        zip_files.append(UploadFile(id=len(zip_files), file=file.file, target=file.target))
+                        zip_files.append(UploadFile(id=len(zip_files), file=file.file, target=file.target, size=file.file.stat().st_size))
                     index += 1
 
                     compressed_size = sum([info.compress_size for info in z.infolist()])
                     if not single_file and compressed_size > self.MAX_ZIP_FILE_SIZE:
                         break
+
+            for f in zip_files:
+                if f.id == zip_id:
+                    f.size = zip_path.stat().st_size
+
         return zip_files
 
     def _create_file_list(self, single_file=False):
