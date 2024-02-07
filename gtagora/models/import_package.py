@@ -32,63 +32,102 @@ class ImportPackage(BaseModel):
         raise AgoraException("Can't create an Import object")
 
     def upload(self, input_files: List[Path], target_folder_id: int = None, json_import_file=None, wait=True,
-               timeout: int = None, verbose=False, relations: dict = None, progress: Path = None):
+               timeout: int = None, verbose=False, relations: dict = None, progress_file: Path = None):
 
-        if not isinstance(progress, Path):
+        if progress_file is not None and not isinstance(progress_file, Path):
             raise AgoraException(f'progress must be a Path object')
 
-        if progress and not progress.exists():
-            progress.parent.mkdir(parents=True, exist_ok=True)
+        if progress_file and not progress_file.exists():
+            progress_file.parent.mkdir(parents=True, exist_ok=True)
 
+        state = self.create_state(input_files, target_folder_id=target_folder_id, json_import_file=json_import_file,
+                                  wait=wait, timeout=timeout, verbose=verbose, relations=relations)
+
+        state.save(progress_file)
+        return self.upload_from_state(state, progress_file=progress_file)
+
+    def create_state(self, input_files: List[Path], target_folder_id: int = None, json_import_file=None, wait=True,
+               timeout: int = None, verbose=False, relations: dict = None):
         state = self._create_upload_state(input_files, relations=relations)
         state.target_folder_id = target_folder_id
         state.json_import_file = json_import_file
         state.wait = wait
         state.timeout = timeout
         state.verbose = verbose
+        return state
 
-        state.save(progress)
-        return self._upload(state, progress=progress)
+    def upload_from_state(self, state: UploadState, progress_file: Path = None):
+        state.calculate_total_size()
 
-    def _upload(self, state: UploadState, progress: Path = None):
+        def progress_callback(file: UploadFile):
+            if state and state.total_size:
+                # update state
+                index = next((i for i, item in enumerate(state.files) if item.file == file.file), None)
+                if index:
+                    state.files[index] = file
+
+                if progress_file is not None:
+                    state.save(progress_file)
+
+                if state.verbose:
+                    size_uploaded = state.size_uploaded
+                    if file.uploaded:
+                        state.size_uploaded += file.size
+                        size_uploaded = state.size_uploaded
+                    else:
+                        size_uploaded += file.size_uploaded
+
+                    files_uploaded = len([f for f in state.files if f.uploaded])
+                    self.print_progress(progress=size_uploaded/state.total_size, counter=files_uploaded, total_count=len(state.files))
+
         base_url = '/api/v1/import/' + str(self.id) + '/'
         url = base_url + 'upload/'
-
-        total_size = sum([f.size for f in state.files if not f.uploaded])
         zip_packages = self._create_zip_packages(state)
 
         if state.verbose:
             print("uploading...")
 
         if len(zip_packages) > 0:
-            for package in zip_packages:
+            for package_index, package in enumerate(zip_packages):
                 with tempfile.TemporaryDirectory() as temp_dir:
                     zip_upload = ZipUploadFiles(package)
-                    files = zip_upload.create_zip(Path(temp_dir), single_file=True)
-                    response = self.http_client.upload(url, files, verbose=state.verbose)
+                    files = zip_upload.create_zip(Path(temp_dir), single_file=True, zip_filename=f'upload_{package_index}.agora_upload')
+                    response = self.http_client.upload(url, files, progress_callback=progress_callback)
                     self._set_uploaded(state, package)
-                    state.save(progress)
+                    state.save(progress_file)
 
         # create a list of the files which are uploaded unzipped. The entries of the new list are a reference to the
         # original list so that the state is changed as well
         files_to_upload_indices = [i for i, f in enumerate(state.files) if not f.zip and not f.uploaded]
         files_to_upload = [state.files[i] for i in files_to_upload_indices]
         if files_to_upload and len(files_to_upload) > 0:
-            response = self.http_client.upload(url, files_to_upload, verbose=state.verbose, progress=progress)
+            response = self.http_client.upload(url, files_to_upload, progress_callback=progress_callback)
+
+        if state.verbose:
+            self.print_progress(progress=1, counter=len(state.files), total_count=len(state.files))
 
         if self.complete(state.json_import_file, target_folder_id=state.target_folder_id, relations=state.relations):
             if state.wait:
                 if state.verbose:
-                    print("importing data...")
+                    print("\nimporting data...")
                 start_time = datetime.datetime.now()
                 while (datetime.datetime.now() - start_time).seconds < state.timeout if state.timeout else True:
                     data = self.progress()
-                    if (data['state'] == 5 and data['progress'] == 100) or data['state'] == -1:
-                        nr_datafiles_imported = self._update_import_state(state)
-                        state.save(progress)
+                    if data['state'] == 5 or data['state'] == 4:
                         if state.verbose:
-                            print("Import complete:")
-                            print(f'  Files Uploaded: {len(state.files)}, Files Imported: {nr_datafiles_imported}')
+                            count = data.get('tasks', {}).get('count', 0)
+                            finished = data.get('tasks', {}).get('finished', 0)
+                            progress = finished / count if count > 0 else 0
+                            self.print_progress(progress=progress)
+                        if data['progress'] == 100:
+                            nr_datafiles_imported = self._update_import_state(state)
+                            state.save(progress_file)
+                            if state.verbose:
+                                print("\nImport complete:")
+                                print(f'  Files Uploaded: {len(state.files)}, Files Imported: {nr_datafiles_imported}')
+                            return state
+                    elif data['state'] == -1:
+                        print("Import failed")
                         return state
                     time.sleep(5)
 
@@ -267,9 +306,19 @@ class ImportPackage(BaseModel):
             state.files[index].uploaded = True
         return state
 
+    @staticmethod
+    def print_progress(progress: float = 0.0, counter=None, total_count=None):
+        length = 40
+        done = int(progress * length)
+        bar = 'o' * done + '-' * (length - done)
+        if total_count is not None and total_count > 0:
+            print('\r%s %d%% (file %d of %d)' % (bar, int(progress * 100), counter, total_count), end='', flush=True)
+        else:
+            print('\r%s %d%%' % (bar, int(progress * 100)), end='', flush=True)
+
 
 def import_data(http_client, paths: List[Path], target_folder_id: int = None, json_import_file: Path = None, wait=True,
-                verbose=False, relations: dict =None, progress: Path = None):
+                verbose=False, relations: dict =None, progress_file: Path = None):
     """
     Import a directory or a list of files with optional target file names.
 
@@ -295,15 +344,5 @@ def import_data(http_client, paths: List[Path], target_folder_id: int = None, js
                           wait=wait,
                           verbose=verbose,
                           relations=relations,
-                          progress=progress)
-    return state
-
-
-def resume_import(http_client, progress: Path):
-    if not progress.exists():
-        raise FileNotFoundError(f"progress file {progress} does not exist")
-
-    state = UploadState.from_file(progress)
-    import_package = ImportPackage.get(state.import_package, http_client=http_client)
-    import_package._upload(state, progress=progress)
+                          progress_file=progress_file)
     return state

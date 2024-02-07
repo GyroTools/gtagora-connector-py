@@ -10,12 +10,13 @@ from gtagora.models.dataset import Dataset
 from gtagora.models.exam import Exam
 from gtagora.models.folder import Folder
 from gtagora.models.group import Group
-from gtagora.models.import_package import import_data, resume_import
+from gtagora.models.import_package import import_data
 from gtagora.models.patient import Patient
 from gtagora.models.project import Project
 from gtagora.models.series import Series
 from gtagora.models.tag import Tag
 from gtagora.models.task import Task
+from gtagora.models.upload_session import UploadSession
 from gtagora.models.user import User
 from gtagora.models.version import Version
 from gtagora.utils import validate_url
@@ -215,7 +216,7 @@ class Agora:
 
     # Import
     def upload(self, paths: List[Path], target_folder_id: Folder = None, json_import_file: Path = None, wait=True,
-               verbose=False, relations: dict =None, progress:Path = None):
+               verbose=False, relations: dict =None, progress_file:Path = None):
         """Upload and import files to Agora
 
         Arguments:
@@ -240,10 +241,13 @@ class Agora:
 
         return import_data(self.http_client, paths=paths, target_folder_id=target_folder_id,
                            json_import_file=json_import_file, wait=wait, verbose=verbose, relations=relations,
-                           progress=progress)
+                           progress_file=progress_file)
 
-    def resume_upload(self, progress_file: Path):
-        return resume_import(self.http_client, progress=progress_file)
+    def create_upload_session(self, paths: List[Path] = None, progress_file:Path = None, target_folder_id: Folder = None,
+                              json_import_file: Path = None, verbose=False, relations: dict =None):
+        session = UploadSession(self.http_client, paths=paths, target_folder_id=target_folder_id, json_import_file=json_import_file,
+                                verbose=verbose, relations=relations, progress_file=progress_file)
+        return session
 
     def import_directory(self, directory: Path, target_folder_id: int = None, json_import_file: Path = None, wait=True,
                          progress=False, relations: dict =None):

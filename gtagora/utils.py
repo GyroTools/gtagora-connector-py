@@ -24,6 +24,7 @@ class UploadFile:
     target: str
     zip: bool = False
     size: Union[int, None] = None
+    size_uploaded: int = 0
     nr_chunks: Union[int, None] = None
     chunks_completed: Union[int, None] = None
     identifier: Union[str, None] = None
@@ -44,6 +45,8 @@ class UploadState:
     wait: bool = True
     verbose: bool = False
     timeout: Union[int, None] = None
+    total_size: Union[int, None] = None
+    size_uploaded: int = 0
 
     def json(self, indent=None):
         return json.dumps(self, cls=EnhancedJSONEncoder, indent=indent)
@@ -52,6 +55,9 @@ class UploadState:
         if file:
             with file.open('w') as f:
                 json.dump(self, f, cls=EnhancedJSONEncoder, indent=indent)
+
+    def calculate_total_size(self):
+        self.total_size = sum([f.size for f in self.files if not f.uploaded])
 
     @staticmethod
     def from_file(file: Path):
@@ -94,7 +100,7 @@ class ZipUploadFiles:
         self.input_files = input_files
         self._zip_is_required = False
 
-    def create_zip(self, path: Path, single_file=False):
+    def create_zip(self, path: Path, single_file=False, zip_filename=None):
         files_to_zip = self._create_file_list(single_file=single_file)
 
         if self._zip_is_required is False:
@@ -105,7 +111,7 @@ class ZipUploadFiles:
 
         while index < len(files_to_zip):
 
-            zip_filename = f'upload_{index}.agora_upload'
+            zip_filename = zip_filename if zip_filename is not None else f'upload_{index}.agora_upload'
             zip_path = path / zip_filename
             zip_id = len(zip_files)
             zip_files.append(UploadFile(id=zip_id, file=zip_path, target=zip_filename))

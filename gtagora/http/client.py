@@ -62,20 +62,12 @@ class Client:
                 for chunk in response.iter_content(self.DOWNLOAD_CHUNK_SIZE):
                     file.write(chunk)
 
-    def upload(self, url, files: List[UploadFile], verbose=False, verify_hash=True, max_retries=5, progress: Path = None):
-        if progress and not progress.exists():
-            raise AgoraException(f"progress file {progress} does not exist")
-
+    def upload(self, url, files: List[UploadFile], verify_hash=True, max_retries=5, progress_callback=None):
         response = self.get('/api/v1/version/')
         if response.status_code == 200:
             data = response.json()
         else:
             raise AgoraException("cannot connect to the Agora server")
-
-        total_size = self.get_total_size(files) if verbose else 0
-        size_uploaded = 0
-
-        state = UploadState.from_file(progress) if progress else None
 
         for index, cur_file in enumerate(files):
             if not cur_file.file.exists() or not cur_file.file.is_file():
@@ -105,8 +97,8 @@ class Client:
                         retry_count = 0
                         while retry_count < max_retries:
                             try:
-                                if verbose:
-                                    self.print_progress(index, len(files), size_uploaded, total_size, chunk, nof_chunks)
+                                if progress_callback:
+                                    progress_callback(files[index])
                                 data = file.read(self.UPLOAD_CHUCK_SIZE)
                                 files_to_upload = {'file': (filename, data)}
                                 form = {
@@ -123,9 +115,6 @@ class Client:
                                 if response.status_code != 200:
                                     raise AgoraException(
                                         f"Failed to upload chunk {chunk} of file {cur_file}. Status code: {response.status_code}")
-
-                                if verbose:
-                                    size_uploaded += len(data)
                                 break
                             except requests.exceptions.RequestException as e:
                                 # Connection error, retry after waiting for a few seconds
@@ -136,9 +125,10 @@ class Client:
                             raise AgoraException(f"Failed to upload chunk {chunk} after {max_retries} retries.")
 
                         files[index].chunks_completed = chunk+1
-                        if state:
-                            self._update_state(state, files[index])
-                            state.save(progress)
+                        files[index].size_uploaded += len(data)
+
+                        if progress_callback:
+                            progress_callback(files[index])
 
                 if verify_hash:
                     hash_local = sha256(cur_file.file)
@@ -155,9 +145,9 @@ class Client:
                                 else:
                                     hash_check_success = True
                                     files[index].uploaded = True
-                                    if state:
-                                        self._update_state(state, files[index])
-                                        state.save(progress)
+                                    files[index].size_uploaded = files[index].size
+                                    if progress_callback:
+                                        progress_callback(files[index])
                                     break
                             elif data.get('state') == 3 or data.get('state') == 5:
                                 raise AgoraException(f"Failed to upload {cur_file}: there was an error joining the chunks")
@@ -168,8 +158,6 @@ class Client:
             else:
                 raise AgoraException(f"Failed to upload {cur_file}: the hash of the file does not match the server hash")
 
-        if verbose:
-            print(f"Upload done")
         return True
 
     def get_total_size(self, files: List[UploadFile]):
@@ -178,18 +166,3 @@ class Client:
             total_size += file.file.stat().st_size
         return total_size
 
-    def print_progress(self, curFile, nof_file, size_uploaded, total_size, chunk, nof_chunks):
-        length = 40
-        done = int(size_uploaded / total_size * length)
-        bar = 'o' * done + '-' * (length - done)
-        print('\r%s file %d of %d, chunk %d of %d' % (bar, curFile + 1, nof_file, chunk + 1, nof_chunks), end='', flush=True)
-        if curFile + 1 == nof_file and chunk + 1 == nof_chunks:
-            bar = 'o' * length
-            print('\r%s file %d of %d, chunk %d of %d' % (bar, curFile + 1, nof_file, chunk + 1, nof_chunks), end='', flush=True)
-            print()
-
-    def _update_state(self, state: UploadState, file: UploadFile):
-        index = next((i for i, item in enumerate(state.files) if item.id == file.id), None)
-        if index:
-            state.files[index] = file
-        return state
