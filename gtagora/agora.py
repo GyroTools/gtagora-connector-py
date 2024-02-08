@@ -244,7 +244,14 @@ class Agora:
                            progress_file=progress_file)
 
     def create_upload_session(self, paths: List[Path] = None, progress_file:Path = None, target_folder_id: Folder = None,
-                              json_import_file: Path = None, verbose=False, relations: dict =None):
+                              json_import_file: Path = None, verbose=True, relations: dict =None):
+
+        if target_folder_id is not None:
+            try:
+                self.get_folder(target_folder_id)
+            except AgoraException:
+                raise AgoraException(f'The target folder with id {target_folder_id} does not exist')
+
         session = UploadSession(self.http_client, paths=paths, target_folder_id=target_folder_id, json_import_file=json_import_file,
                                 verbose=verbose, relations=relations, progress_file=progress_file)
         return session

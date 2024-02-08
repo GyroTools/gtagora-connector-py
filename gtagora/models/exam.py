@@ -1,6 +1,9 @@
+from typing import List
+
 from gtagora.exception import AgoraException
 from gtagora.models.base import BaseModel, LinkToFolderMixin, DownloadDatasetMixin, TagMixin
 from gtagora.models.dataset import Dataset
+from gtagora.models.import_package import import_data
 from gtagora.models.series import Series
 from gtagora.models.timeline import TimelineItem
 from gtagora.utils import remove_illegal_chars
@@ -66,24 +69,11 @@ class Exam(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, BaseModel):
 
         raise AgoraException('Could not get the series')
 
-    def upload(self, input_files, target_files=None):
-        if target_files and len(input_files) != len(target_files):
-            raise AgoraException("The Inputfiles and TargetFiles must have the same length")
-
-        if isinstance(input_files, str):
-            files = []
-            files.append(input_files)
-        else:
-            files = input_files
-
-        datasets = []
-        for index, currrent_file in enumerate(files):
-            cur_target_file = None
-            if target_files:
-                cur_target_file = target_files[index]
-            datasets.append(self.http_client.upload_dataset(currrent_file, cur_target_file, self.http_client,
-                                                            exam_id=self.id))
-        return datasets
+    def upload(self, paths: List[Path], verbose=False):
+        for path in paths:
+            if not path.exists():
+                raise FileNotFoundError(path.as_posix())
+        return import_data(self.http_client, paths=paths, exam_id=self.id, wait=False, verbose=verbose)
 
     def download(self, target_path: Path):
         for series in self.get_series():

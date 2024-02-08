@@ -183,11 +183,11 @@ class Folder(LinkToFolderMixin, TagMixin, BaseModel):
 
         return downloaded_files
 
-    def upload(self, paths: List[Path], wait=True, progress=False, relations: dict =None):
+    def upload(self, paths: List[Path], wait=True, verbose=False, relations: dict =None):
         for path in paths:
             if not path.exists():
                 raise FileNotFoundError(path.as_posix())
-        return import_data(self.http_client, paths=paths, target_folder_id=self.id, wait=wait, progress=progress, relations=relations)
+        return import_data(self.http_client, paths=paths, target_folder_id=self.id, wait=wait, verbose=verbose, relations=relations)
 
     def create_folder(self, name):
         url = f'{self.BASE_URL}{self.id}/new/'

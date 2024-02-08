@@ -40,13 +40,13 @@ class UploadState:
     import_package: int
     files: List[UploadFile]
     target_folder_id: Union[dict, None] = None
+    exam_id: Union[dict, None] = None
+    series_id: Union[dict, None] = None
     json_import_file: Union[Path, None] = None
     relations: Union[dict, None] = None
     wait: bool = True
     verbose: bool = False
     timeout: Union[int, None] = None
-    total_size: Union[int, None] = None
-    size_uploaded: int = 0
 
     def json(self, indent=None):
         return json.dumps(self, cls=EnhancedJSONEncoder, indent=indent)
@@ -55,9 +55,6 @@ class UploadState:
         if file:
             with file.open('w') as f:
                 json.dump(self, f, cls=EnhancedJSONEncoder, indent=indent)
-
-    def calculate_total_size(self):
-        self.total_size = sum([f.size for f in self.files if not f.uploaded])
 
     @staticmethod
     def from_file(file: Path):

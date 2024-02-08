@@ -1,6 +1,10 @@
+from pathlib import Path
+from typing import List
+
 from gtagora.exception import AgoraException
 from gtagora.models.base import LinkToFolderMixin, BaseModel, DownloadDatasetMixin, SearchMixin, TagMixin
 from gtagora.models.dataset import Dataset
+from gtagora.models.import_package import import_data
 from gtagora.models.timeline import TimelineItem
 
 
@@ -15,22 +19,11 @@ class Series(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, BaseModel, Searc
         url = f'{self.BASE_URL}{self.id}/datasets/?limit=10000000000'
         return self._get_object_list(url, filters, Dataset)
 
-    def upload(self, input_files, target_files=None):
-        if target_files and len(input_files) != len(target_files):
-            raise AgoraException("The Inputfiles and TargetFiles must have the same length")
-
-        if isinstance(input_files, str):
-            files = [input_files]
-        else:
-            files = input_files
-
-        datasets = []
-        for index, curFile in enumerate(files):
-            cur_target_file = None
-            if target_files:
-                cur_target_file = target_files[index]
-            datasets.append(Dataset.upload_files(self.http_client, curFile, cur_target_file, series_id=self.id))
-        return datasets
+    def upload(self, paths: List[Path], verbose=False):
+        for path in paths:
+            if not path.exists():
+                raise FileNotFoundError(path.as_posix())
+        return import_data(self.http_client, paths=paths, series_id=self.id, wait=False, verbose=verbose)
 
     def upload_dataset(self, input_files, dataset_type, target_files=None):
         # This function creates a dataset of a given type all files given as input will be added to one dataset.
