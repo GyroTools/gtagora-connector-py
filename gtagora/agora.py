@@ -243,7 +243,7 @@ class Agora:
                            json_import_file=json_import_file, wait=wait, verbose=verbose, relations=relations,
                            progress_file=progress_file)
 
-    def create_upload_session(self, paths: List[Path] = None, progress_file:Path = None, target_folder_id: Folder = None,
+    def create_upload_session(self, paths: List[Path] = None, progress_file:Path = None, target_folder_id: int = None,
                               json_import_file: Path = None, verbose=True, relations: dict =None):
 
         if target_folder_id is not None:
