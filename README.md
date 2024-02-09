@@ -371,7 +371,37 @@ relations = {
 
 folder.upload(dir, relations=relations)
 ```
-  
+
+### Advanced Upload
+
+The advanced upload functionality creates an upload session for transferring files to Agora. It tracks the upload 
+process, enables the users to resume an interrupted upload and ensures data integrity.
+
+To create an upload session use the following syntax:
+
+```python
+files = [Path('C:/data/raw/rawfile.raw'), Path('C:/data/raw/rawfile.lab'), Path('C:/data/log/logfile.txt')]
+progress_file = Path('C:/data/progress.json')
+session = agora.create_upload_session(files, progress_file=progress_file, target_folder_id=45, verbose=True)
+```
+
+After creating the session start the upload with:
+
+```python
+session.start()
+```
+
+If an upload was interrupted or stopped, the session can be recreated and resumed using the progress_file:
+
+```python
+progress_file = Path('C:/data/progress.json')
+session = agora.create_upload_session(progress_file=progress_file)
+session.start()
+```
+
+Furthermore, the advanced upload will verify the data integrity of the uploaded files by comparing file hashes. It also waits 
+for the data import to finish before returning and checks if all uploaded files are imported successfully. 
+
 
 ### Working with tasks
 

@@ -1,5 +1,6 @@
 import datetime
 import json
+import math
 import os
 import tempfile
 import time
@@ -83,7 +84,8 @@ class ImportPackage(BaseModel):
                         return
 
                     files_uploaded = len([f for f in state.files if f.uploaded])
-                    self.print_progress(progress=size_uploaded/total_size, counter=files_uploaded, total_count=len(state.files))
+                    appendix = f'({self.pretty_print_progress(size_uploaded, total_size)}, file {files_uploaded} of {len(state.files)})'
+                    self.print_progress(progress=size_uploaded/total_size, appendix=appendix)
 
         base_url = '/api/v1/import/' + str(self.id) + '/'
         url = base_url + 'upload/'
@@ -110,7 +112,9 @@ class ImportPackage(BaseModel):
             response = self.http_client.upload(url, files_to_upload, progress_callback=progress_callback)
 
         if state.verbose:
-            self.print_progress(progress=1, counter=len(state.files), total_count=len(state.files))
+            total_size = sum([f.size for f in state.files])
+            appendix = f'({self.pretty_print_progress(total_size, total_size)}, file {len(state.files)} of {len(state.files)})'
+            self.print_progress(progress=1, appendix=appendix)
 
         if self.complete(state.json_import_file, target_folder_id=state.target_folder_id, exam_id=state.exam_id,
                          series_id=state.series_id, relations=state.relations):
@@ -196,10 +200,16 @@ class ImportPackage(BaseModel):
         url = self.BASE_URL + str(self.id) + '/result/'
 
         response = self.http_client.get(url)
-        nr_datafiles = 0
         if response.status_code == 200:
             data = response.json()
             datafiles = []
+
+            if data and len(data) > 0 and not 'datafiles' in data[0]:
+                # old version of Agora which does not return the imported datafiles --> set all to imported (hack)
+                for file in state.files:
+                    file.imported = True
+                return
+
             for entry in data:
                 datafiles.extend(entry.get('datafiles', []))
             unique_datafiles_dict = {d['id']: d for d in datafiles}
@@ -212,10 +222,9 @@ class ImportPackage(BaseModel):
                         local_sha1 = sha1(Path(state.files[index].file))
                         if local_sha1 == datafile['sha1']:
                             state.files[index].imported = True
-                            nr_datafiles += 1
                             break
 
-        return nr_datafiles
+        return
 
     def get_objects(self):
         url = self.BASE_URL + str(self.id) + '/get_objects/'
@@ -317,14 +326,22 @@ class ImportPackage(BaseModel):
         return state
 
     @staticmethod
-    def print_progress(progress: float = 0.0, counter=None, total_count=None):
+    def print_progress(progress: float = 0.0, appendix=''):
         length = 40
-        done = int(progress * length)
+        done = math.ceil(progress * length)
         bar = 'o' * done + '-' * (length - done)
-        if total_count is not None and total_count > 0:
-            print('\r%s %d%% (file %d of %d)' % (bar, int(progress * 100), counter, total_count), end='', flush=True)
-        else:
-            print('\r%s %d%%' % (bar, int(progress * 100)), end='', flush=True)
+        print('\r%s %d%% %s' % (bar, math.ceil(progress * 100), appendix), end='', flush=True)
+
+    @staticmethod
+    def pretty_print_progress(size1, size2):
+        """Take two sizes in bytes and return them in a human-readable format."""
+        units = ['bytes', 'KB', 'MB', 'GB', 'TB']
+        for unit in units:
+            if size2 < 1024.0:
+                return f"{size1:.1f}/{size2:.1f}{unit}"
+            size1 /= 1024.0
+            size2 /= 1024.0
+        return f"{size1:.1f}/{size2:.1f} PB"
 
     def print_final_message(self, state):
         if state.verbose:
