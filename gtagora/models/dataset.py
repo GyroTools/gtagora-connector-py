@@ -5,6 +5,7 @@ from gtagora.models.base import BaseModel, LinkToFolderMixin, TagMixin
 from gtagora.models.datafile import Datafile
 from gtagora.models.image_info import ImageInfo
 from gtagora.models.parameter import Parameter
+from gtagora.models.parameter_set import ParameterSet
 
 
 class DatasetType:
@@ -55,10 +56,45 @@ class Dataset(LinkToFolderMixin, TagMixin, BaseModel):
             downloaded_files.append(datafile.download(filename))
         return downloaded_files
 
+    def get_parametersets(self):
+        url = f'{self.BASE_URL_V2}{self.id}/parametersets/'
+        response = self.http_client.get(url)
+        parametersets = []
+        if response.status_code == 200:
+            data = response.json()
+            for parset in data:
+                if 'id' in parset:
+                    parametersets.append(ParameterSet.get(parset['id'], http_client=self.http_client))
+
+        self.cached_parametersets = parametersets
+        return parametersets
+
+    def get_parameters(self):
+        if hasattr(self, 'parameters'):
+            return self.parameters
+
+        if hasattr(self, 'cached_parametersets'):
+            parametersets = self.cached_parametersets
+        else:
+            parametersets = self.get_parametersets()
+        parameters = []
+        for parameterset in parametersets:
+            parameters.extend(parameterset.get_parameters())
+
+        self.parameters = parameters
+        return parameters
+
     def get_parameter(self, name):
-        url = f'{self.BASE_URL}{self.id}/parameter/?description__name={name}&limit=10000000000'
-        pars = self._get_object_list(url, None, Parameter)
-        return pars[0] if pars else None
+        if hasattr(self, 'cached_parametersets'):
+            parametersets = self.cached_parametersets
+        else:
+            parametersets = self.get_parametersets()
+
+        for parameterset in parametersets:
+            par = parameterset.get_parameter(name)
+            if par:
+                return par
+        return None
 
     def get_info(self):
         url = f'{self.BASE_URL}{self.id}/image_info/'

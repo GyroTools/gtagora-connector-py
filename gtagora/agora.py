@@ -11,6 +11,7 @@ from gtagora.models.exam import Exam
 from gtagora.models.folder import Folder
 from gtagora.models.group import Group
 from gtagora.models.import_package import import_data
+from gtagora.models.parameter_set import ParameterSet
 from gtagora.models.patient import Patient
 from gtagora.models.project import Project
 from gtagora.models.series import Series
@@ -199,6 +200,9 @@ class Agora:
 
     def get_dataset(self, dataset_id):
         return Dataset.get(dataset_id, http_client=self.http_client)
+
+    def get_parameterset(self, parameterset_id):
+        return ParameterSet.get(parameterset_id, http_client=self.http_client)
 
     def get_task(self, task_id):
         return Task.get(task_id, http_client=self.http_client)
