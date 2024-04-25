@@ -360,6 +360,10 @@ class Agora:
             tags = self.get_tags()
             return next((x for x in tags if x.label == name), None)
 
+    def create_tag(self, name, user: int=None, project=None, group: str = None, color: str = None):
+        tag = Tag(http_client=self.http_client)
+        return tag.create(name, user, project, group, color)
+
 
     def close(self):
         pass
