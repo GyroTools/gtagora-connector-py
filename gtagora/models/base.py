@@ -14,9 +14,19 @@ def get_client(http_client):
 class BaseModel:
 
     BASE_URL = ''
+    BASE_URL_V2 = ''
+
+    V2_DEFAULT = False
 
     def __init__(self, http_client=None):
         self.http_client = get_client(http_client)
+
+    @property
+    def base_url(cls):
+        if cls.V2_DEFAULT:
+            return cls.BASE_URL_V2
+        else:
+            return cls.BASE_URL
 
     @classmethod
     def from_response(cls, model_dict, http_client=None):
@@ -40,7 +50,7 @@ class BaseModel:
         if 'limit' not in filters:
             filters['limit'] = '10000000000'
 
-        url = cls.BASE_URL
+        url = cls.base_url
         return instance._get_object_list(url, filters, cls)
 
     @classmethod
@@ -64,7 +74,7 @@ class BaseModel:
         raise AgoraException(f'Could not get the {cls.__name__} list')
 
     def delete(self):
-        url = f'{self.BASE_URL}{self.id}/'
+        url = f'{self.base_url}{self.id}/'
         response = self.http_client.delete(url)
 
         if response.status_code == 204:
@@ -115,9 +125,9 @@ class BaseModel:
 
     def _get_object(self, id):
         if id:
-            url = f'{self.BASE_URL}{id}/'
+            url = f'{self.base_url}{id}/'
         else:
-            url = f'{self.BASE_URL}'
+            url = f'{self.base_url}'
 
         response = self.http_client.get(url)
         if response.status_code == 200:
@@ -174,7 +184,7 @@ class LinkToFolderMixin:
         else:
             raise AgoraException('The input must either be a folder or a folder id')
 
-        url = f'{self.BASE_URL}{self.id}/link_to/{folder_id}/'
+        url = f'{self.base_url}{self.id}/link_to/{folder_id}/'
         post_data = {}
         response = self.http_client.post(url, post_data)
         if response.status_code == 201:
@@ -188,7 +198,7 @@ class LinkToFolderMixin:
         if filters and not isinstance(filters, dict):
             raise AgoraException('The filter must be a dict')
 
-        url = f'{self.BASE_URL}{self.id}/folders/?limit=10000000000'
+        url = f'{self.base_url}{self.id}/folders/?limit=10000000000'
 
         folders = self._get_object_list(url, filters, Folder)
 
@@ -232,7 +242,7 @@ class SearchMixin:
         if not isinstance(search_string, str):
             raise AgoraException('The search term must be a string')
 
-        url = f'{instance.BASE_URL}search/?q=' + search_string + '&limit=10000000000'
+        url = f'{instance.base_url}search/?q=' + search_string + '&limit=10000000000'
         response = http_client.get(url)
         if response.status_code == 200:
             list = instance.get_list_from_data(response.json())
@@ -255,7 +265,7 @@ class TagMixin:
         else:
             raise AgoraException('The input must either be a tag or a tag id')
 
-        url = TagInstance.BASE_URL
+        url = TagInstance.base_url
         post_data = {'tag_definition': tag_id, 'tagged_object_content_type': self.content_type(), 'tagged_object_id': self.id}
         response = self.http_client.post(url, post_data)
         if response.status_code == 201:

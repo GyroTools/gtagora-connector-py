@@ -18,10 +18,12 @@ class Folder(LinkToFolderMixin, TagMixin, RatingMixin, BaseModel):
     BASE_URL = '/api/v1/folder/'
     BASE_URL_V2 = '/api/v2/folder/'
 
+    V2_DEFAULT = True
+
     def get_items(self):
         items = []
 
-        url = self.BASE_URL + str(self.id) + '/items/?limit=10000000000'
+        url = self.base_url + str(self.id) + '/items/?limit=10000000000'
         response = self.http_client.get(url)
 
         for item in response.json():
