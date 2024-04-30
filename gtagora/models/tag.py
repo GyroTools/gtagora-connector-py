@@ -35,3 +35,8 @@ class Tag(BaseModel):
 class TagInstance(BaseModel):
 
     BASE_URL = '/api/v2/tag-instance/'
+
+
+class RatingInstance(BaseModel):
+
+    BASE_URL = '/api/v2/rating/'

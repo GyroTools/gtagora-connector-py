@@ -1,7 +1,7 @@
 import os
 
 from gtagora.exception import AgoraException
-from gtagora.models.base import BaseModel, LinkToFolderMixin, TagMixin
+from gtagora.models.base import BaseModel, LinkToFolderMixin, TagMixin, RatingMixin
 from gtagora.models.datafile import Datafile
 from gtagora.models.image_info import ImageInfo
 from gtagora.models.parameter import Parameter
@@ -28,7 +28,7 @@ class DatasetType:
     OTHER = 100000
 
 
-class Dataset(LinkToFolderMixin, TagMixin, BaseModel):
+class Dataset(LinkToFolderMixin, TagMixin, RatingMixin, BaseModel):
     BASE_URL = '/api/v1/dataset/'
     BASE_URL_V2 = '/api/v2/dataset/'
 

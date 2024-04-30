@@ -266,3 +266,62 @@ class TagMixin:
                 return None
 
         raise AgoraException('Could not tag the object')
+
+    def get_tags(self):
+        from gtagora.models.tag import Tag
+
+        url = f'{self.BASE_URL_V2}{self.id}/tags/'
+        response = self.http_client.get(url)
+        if response.status_code == 200:
+            list = Tag.get_list_from_data(response.json())
+            return list
+        else:
+            raise AgoraException(f'Cannot get the tags: {response.text}')
+
+
+class RatingMixin:
+    def rate(self, value):
+        from gtagora.models.tag import RatingInstance
+
+        if value < 0 or value > 5:
+            raise AgoraException('The rating must be between 0 and 5')
+
+        # check if the object already has a rating
+        rating = self.get_rating()
+        url = RatingInstance.BASE_URL
+
+        if rating:
+            if value == 0:
+                # delete rating
+                response = self.http_client.delete(f'{url}{rating.id}/')
+            else:
+                # update rating
+                put_data = {'id': rating.id, 'value': value, 'rated_object_content_type': self.content_type(), 'rated_object_id': self.id}
+                response = self.http_client.put(f'{url}{rating.id}/', put_data)
+        else:
+            # create rating
+            post_data = {'value': value, 'rated_object_content_type': self.content_type(), 'rated_object_id': self.id}
+            response = self.http_client.post(url, post_data)
+
+        if response.status_code == 204:
+            return None
+
+        if response.status_code < 400:
+            return RatingInstance.from_response(response.json(), http_client=self.http_client)
+
+        raise AgoraException('Could not rate the object')
+
+    def get_rating(self):
+        from gtagora.models.tag import RatingInstance
+
+        url = f'{self.BASE_URL_V2}{self.id}/rating/'
+        response = self.http_client.get(url)
+        if response.status_code == 200:
+            ratings = RatingInstance.get_list_from_data(response.json())
+            if ratings:
+                return ratings[0]
+            else:
+                return None
+
+
+        raise AgoraException(f'Cannot get the rating: {response.text}')
