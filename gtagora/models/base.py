@@ -22,11 +22,12 @@ class BaseModel:
         self.http_client = get_client(http_client)
 
     @property
-    def base_url(cls):
-        if cls.V2_DEFAULT:
-            return cls.BASE_URL_V2
-        else:
-            return cls.BASE_URL
+    def base_url(self):
+        return self.BASE_URL_V2 if self.V2_DEFAULT else self.BASE_URL
+
+    @classmethod
+    def get_base_url(cls):
+        return cls.BASE_URL_V2 if cls.V2_DEFAULT else cls.BASE_URL
 
     @classmethod
     def from_response(cls, model_dict, http_client=None):
@@ -50,7 +51,7 @@ class BaseModel:
         if 'limit' not in filters:
             filters['limit'] = '10000000000'
 
-        url = cls.base_url
+        url = cls.get_base_url()
         return instance._get_object_list(url, filters, cls)
 
     @classmethod
@@ -265,7 +266,7 @@ class TagMixin:
         else:
             raise AgoraException('The input must either be a tag or a tag id')
 
-        url = TagInstance.base_url
+        url = TagInstance.get_base_url()
         post_data = {'tag_definition': tag_id, 'tagged_object_content_type': self.content_type(), 'tagged_object_id': self.id}
         response = self.http_client.post(url, post_data)
         if response.status_code == 201:
