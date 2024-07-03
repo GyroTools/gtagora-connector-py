@@ -300,6 +300,15 @@ class Agora:
         """
         return User.get_current_user(http_client=self.http_client)
 
+    def create_user(self, username, password, email=None, first_name=None, last_name=None, is_superuser=False):
+        """Creates a new user (only possible with admin permissions)
+
+        Returns:
+            User -- The new user
+        """
+        return User.get_or_create(username, password, email=email, first_name=first_name, last_name=last_name,
+                                  is_superuser=is_superuser, http_client=self.http_client)
+
     def get_groups(self):
         """Returns a list of all gropus
 

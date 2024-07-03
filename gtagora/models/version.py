@@ -1,5 +1,5 @@
 from gtagora.models.base import BaseModel
-from distutils.version import LooseVersion
+from packaging import version
 from gtagora.exception import AgoraException
 
 
@@ -10,11 +10,11 @@ class Version(BaseModel):
     def is_dev(self):
         return self.version.lower() == 'dev'
 
-    def is_higher_than(self, version):
-        return LooseVersion(self.version) > LooseVersion(version)
+    def is_higher_than(self, other_version):
+        return version.parse(self.version.replace('-SNAPSHOT', '')) > version.parse(other_version)
 
-    def is_lower_than(self, version):
-        return LooseVersion(self.version) < LooseVersion(version)
+    def is_lower_than(self, other_version):
+        return version.parse(self.version.replace('-SNAPSHOT', '')) < version.parse(other_version)
 
     def needs(self, version, feature=None, error_message=None):
         if not self.is_dev() and self.is_lower_than(version):

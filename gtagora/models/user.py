@@ -21,7 +21,7 @@ class User(BaseModel):
         raise AgoraException('Could not get the current user')
 
     @classmethod
-    def get_or_create(cls, username, password, email=None, first_name=None, last_name=None, http_client=None):
+    def get_or_create(cls, username, password, email=None, first_name=None, last_name=None, is_superuser=False, http_client=None):
         http_client = get_client(http_client)
         url = cls.BASE_URL
 
@@ -35,7 +35,8 @@ class User(BaseModel):
             'password': password,
             'email': email,
             'first_name': first_name,
-            'last_name': last_name
+            'last_name': last_name,
+            'is_superuser': is_superuser,
         }
 
         response = http_client.post(url, data, timeout=60)
