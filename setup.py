@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="gtagora-connector",
-    version="1.5.3",
+    version="1.5.4",
     author="Martin Bührer, Felix Eichenberger",
     author_email="info@gyrotools.com",
     description="The Agora Connector for Python",
@@ -15,6 +15,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=[
         "requests>=2.0",
+        "packaging>=20.0",
     ],
     python_requires=">=3.6.0",
     classifiers=[
