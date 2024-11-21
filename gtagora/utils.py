@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import List, Union
 from urllib.parse import urlparse
 
+from gtagora.exception import AgoraException
+
 
 class EnhancedJSONEncoder(json.JSONEncoder):
     def default(self, o):
@@ -188,8 +190,7 @@ def validate_url(url):
     # check if the url has a scheme. If not then add it
     u = urlparse(url)
     if u.scheme != 'http' and u.scheme != 'https':
-        url = 'http://' + url
-        u = urlparse(url)
+        raise AgoraException('the URL must start with http:// or https://')
 
     if u.path:
         url = u.scheme + '://' + u.netloc

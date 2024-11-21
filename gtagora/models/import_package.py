@@ -1,17 +1,15 @@
 import datetime
-import json
 import math
 import os
 import tempfile
 import time
 import uuid
-from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 
 from gtagora.exception import AgoraException
 from gtagora.models.base import BaseModel
-from gtagora.utils import ZipUploadFiles, sha1, UploadFile, EnhancedJSONEncoder, UploadState
+from gtagora.utils import ZipUploadFiles, sha1, UploadFile, UploadState
 
 
 class ImportPackage(BaseModel):
@@ -26,12 +24,14 @@ class ImportPackage(BaseModel):
     def create(self):
         url = self.BASE_URL
         response = self.http_client.post(url, json={}, timeout=60)
+
         if response.status_code == 201:
             data = response.json()
             if 'id' in data:
                 self._set_values(data)
                 return self
-        raise AgoraException("Can't create an Import object")
+        full_url = self.http_client.connection.url + url
+        raise AgoraException(f"Can't create an Import object: url={full_url} status_code={response.status_code}")
 
     def upload(self, input_files: List[Path], target_folder_id: int = None, exam_id=None, series_id= None,
                json_import_file=None, wait=True, timeout: int = None, verbose=False, relations: dict = None,
