@@ -1,6 +1,7 @@
 import pprint
-import unicodedata
 import re
+
+import unicodedata
 
 from gtagora.exception import AgoraException
 
@@ -288,6 +289,29 @@ class TagMixin:
             return list
         else:
             raise AgoraException(f'Cannot get the tags: {response.text}')
+
+    def remove_tag(self, tag):
+        from gtagora.models.project import Project
+        from gtagora.models.tag import Tag, TagInstance
+
+        if not isinstance(tag, Tag):
+            raise AgoraException('The input must be a Tag class')
+
+        # at the moment we don't have the possibility to get a tag-instance for an object. So we have to get all
+        # tag-instances for the project and then search for the object
+        url = Project.get_base_url() + f'{tag.project}/tag-instance/'
+        response = self.http_client.get(url)
+        if response.status_code == 200:
+            tag_instances = TagInstance.get_list_from_data(response.json())
+            tag_instance = next((x for x in tag_instances if x.tag_definition == tag.id and x.tagged_object_id == self.id), None)
+            if not tag_instance:
+                raise AgoraException(f'The object is not tagged with the tag "{tag.label}"')
+            url = TagInstance.get_base_url() + f'{tag_instance.id}/'
+            response = self.http_client.delete(url)
+            if response.status_code == 204:
+                return True
+            else:
+                raise AgoraException(f'Could not remove the tag: {response.text}')
 
 
 class RatingMixin:

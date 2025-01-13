@@ -93,7 +93,8 @@ class Client:
                 with open(cur_file.file, mode='rb') as file:
                     if start_chunk > 0:
                         file.seek(start_chunk * self.UPLOAD_CHUCK_SIZE, os.SEEK_SET)
-                    for chunk in range(start_chunk, nof_chunks):
+                    # chunk number starts from 1
+                    for chunk in range(start_chunk+1, nof_chunks+1):
                         retry_count = 0
                         while retry_count < max_retries:
                             try:
@@ -124,7 +125,7 @@ class Client:
                         else:
                             raise AgoraException(f"Failed to upload chunk {chunk} after {max_retries} retries.")
 
-                        files[index].chunks_completed = chunk+1
+                        files[index].chunks_completed = chunk
                         files[index].size_uploaded += len(data)
 
                         if progress_callback:
