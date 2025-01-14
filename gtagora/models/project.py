@@ -1,18 +1,13 @@
 import json
 
 from gtagora.exception import AgoraException
-from gtagora.models.exam import Exam
-from gtagora.models.host import Host
 from gtagora.models.base import BaseModel
-from gtagora.models.dataset import Dataset
+from gtagora.models.exam import Exam
 from gtagora.models.folder import Folder
+from gtagora.models.host import Host
 from gtagora.models.project_role import ProjectRole
-from gtagora.models.series import Series
 from gtagora.models.task import Task
 from gtagora.models.trash import Trash
-from gtagora.utils import remove_illegal_chars
-
-from pathlib import Path
 
 
 class Project(BaseModel):
@@ -110,6 +105,14 @@ class Project(BaseModel):
     def empty_trash(self):
         trash = Trash()
         trash.empty(self.id)
+
+    def get_tags(self, name=None):
+        from gtagora.models.tag import Tag
+        url = f'{self.BASE_URL}{self.id}/tag-definition/'
+        tags = self._get_object_list(url, None, Tag)
+        if name:
+            tags = [t for t in tags if t.label == name]
+        return tags
 
     @property
     def display_name(self):

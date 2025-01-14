@@ -356,18 +356,14 @@ class Agora:
         """
         return Version.get(http_client=self.http_client)
 
-    def get_tags(self):
-        return Tag.get_list(http_client=self.http_client)
+    def get_tags(self, name=None):
+        tags = Tag.get_list(http_client=self.http_client)
+        if name:
+            return [tag for tag in tags if tag.label == name]
+        return tags
 
-    def get_tag(self, id=None, name=None):
-        if not id and not name:
-            raise AgoraException('please give a name or id as input')
-
-        if id:
-            return Tag.get(id, http_client=self.http_client)
-        elif name:
-            tags = self.get_tags()
-            return next((x for x in tags if x.label == name), None)
+    def get_tag(self, id):
+        return Tag.get(id, http_client=self.http_client)
 
     def create_tag(self, name, user: int=None, project=None, group: str = None, color: str = None):
         tag = Tag(http_client=self.http_client)
