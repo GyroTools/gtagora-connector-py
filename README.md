@@ -275,6 +275,15 @@ tag1 = agora.get_tag(id=3)
 tag2 = agora.get_tag(name='good')
 ```
 
+Get the tags for an object:
+
+```python
+tags = dataset.get_tags()
+tags = exam.get_tags()
+tags = series.get_tags()
+tags = folder.get_tags()
+```
+
 Tag an agora object:
 
 ```python
