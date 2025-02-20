@@ -23,7 +23,8 @@ class Folder(LinkToFolderMixin, TagMixin, RatingMixin, BaseModel):
     def get_items(self):
         items = []
 
-        url = self.base_url + str(self.id) + '/items/?limit=10000000000'
+        # we get the folder items with the v1 url because then the datafiles are included in the datasets
+        url = self.BASE_URL + str(self.id) + '/items/?limit=10000000000'
         response = self.http_client.get(url)
 
         for item in response.json():
@@ -131,13 +132,12 @@ class Folder(LinkToFolderMixin, TagMixin, RatingMixin, BaseModel):
             if isinstance(item.object, Dataset):
                 datasets.append(item.object)
             if recursive and isinstance(item, Folder):
-                datasets.extend(item.get_series(recursive))
+                datasets.extend(item.get_datasets(recursive))
 
         return datasets
 
     def get_dataset(self, name):
         return self._get_by_name(name, Dataset)
-
 
     def get_breadcrumb(self):
         url = f'{self.BASE_URL}{self.id}/breadcrumb/?limit=10000000000'
