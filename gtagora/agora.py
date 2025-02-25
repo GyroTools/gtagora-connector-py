@@ -37,6 +37,7 @@ class Agora:
         self.set_default_client(client)
         self.version = self.get_version()
         self.version.needs('6.0.0', error_message='The python interface needs Agora version 6.0.0 or higher. Please update Agora')
+        self.version.needs('7.14.0', error_message='This version of the python interface needs Agora version 7.14.0 or higher. Please update Agora')
         self.import_directroy = self.import_directory # for backward-compatibility.
 
     @staticmethod

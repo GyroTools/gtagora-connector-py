@@ -1,3 +1,4 @@
+import hashlib
 import json
 import math
 import os
@@ -88,78 +89,51 @@ class Client:
 
             start_chunk = files[index].chunks_completed if files[index].chunks_completed is not None else 0
 
-            hash_retry_count = 0
-            while hash_retry_count < max_retries:
-                with open(cur_file.file, mode='rb') as file:
-                    if start_chunk > 0:
-                        file.seek(start_chunk * self.UPLOAD_CHUCK_SIZE, os.SEEK_SET)
-                    # chunk number starts from 1
-                    for chunk in range(start_chunk+1, nof_chunks+1):
-                        retry_count = 0
-                        while retry_count < max_retries:
-                            try:
-                                if progress_callback:
-                                    progress_callback(files[index])
-                                data = file.read(self.UPLOAD_CHUCK_SIZE)
-                                files_to_upload = {'file': (filename, data)}
-                                form = {
-                                    'description': '',
-                                    'flowChunkNumber': str(chunk),
-                                    'flowChunkSize': str(self.UPLOAD_CHUCK_SIZE),
-                                    'flowCurrentChunkSize': str(len(data)),
-                                    'flowTotalSize': str(filesize),
-                                    'flowIdentifier': uid,
-                                    'flowFilename': target_filename,
-                                    'flowRelativePath': target_filename,
-                                    'flowTotalChunks': str(nof_chunks)}
-                                response = self.post(url, files=files_to_upload, data=form, timeout=self.UPLOAD_TIMEOUT)
-                                if response.status_code != 200:
-                                    raise AgoraException(
-                                        f"Failed to upload chunk {chunk} of file {cur_file}. Status code: {response.status_code}")
-                                break
-                            except requests.exceptions.RequestException as e:
-                                # Connection error, retry after waiting for a few seconds
-                                retry_count += 1
-                                delay = 2 ** retry_count
-                                time.sleep(delay)
-                        else:
-                            raise AgoraException(f"Failed to upload chunk {chunk} after {max_retries} retries.")
+            with open(cur_file.file, mode='rb') as file:
+                if start_chunk > 0:
+                    file.seek(start_chunk * self.UPLOAD_CHUCK_SIZE, os.SEEK_SET)
+                # chunk number starts from 1
+                for chunk in range(start_chunk+1, nof_chunks+1):
+                    retry_count = 0
+                    while retry_count < max_retries:
+                        try:
+                            if progress_callback:
+                                progress_callback(files[index])
+                            data = file.read(self.UPLOAD_CHUCK_SIZE)
+                            files_to_upload = {'file': (filename, data)}
+                            form = {
+                                'description': '',
+                                'flowChunkNumber': str(chunk),
+                                'flowChunkSize': str(self.UPLOAD_CHUCK_SIZE),
+                                'flowCurrentChunkSize': str(len(data)),
+                                'flowTotalSize': str(filesize),
+                                'flowIdentifier': uid,
+                                'flowFilename': target_filename,
+                                'flowRelativePath': target_filename,
+                                'flowTotalChunks': str(nof_chunks)}
+                            if verify_hash:
+                                sha256 = hashlib.sha256()
+                                sha256.update(data)
+                                data_hash = sha256.hexdigest()
+                                form['flowFileContentHash'] = data_hash
+                            response = self.post(url, files=files_to_upload, data=form, timeout=self.UPLOAD_TIMEOUT)
+                            if response.status_code != 200:
+                                raise AgoraException(
+                                    f"Failed to upload chunk {chunk} of file {cur_file}. Status code: {response.status_code}")
+                            break
+                        except requests.exceptions.RequestException as e:
+                            # Connection error, retry after waiting for a few seconds
+                            retry_count += 1
+                            delay = 2 ** retry_count
+                            time.sleep(delay)
+                    else:
+                        raise AgoraException(f"Failed to upload chunk {chunk} after {max_retries} retries.")
 
-                        files[index].chunks_completed = chunk
-                        files[index].size_uploaded += len(data)
+                    files[index].chunks_completed = chunk
+                    files[index].size_uploaded += len(data)
 
-                        if progress_callback:
-                            progress_callback(files[index])
-
-                if verify_hash:
-                    hash_local = sha256(cur_file.file)
-                    hash_server = None
-                    hash_check_success = False
-                    while hash_server is None:
-                        response = self.get(f'/api/v1/flowfile/{uid}/')
-                        if response.status_code == 200:
-                            data = response.json()
-                            if data.get('state') == 2:
-                                hash_server = data.get('content_hash')
-                                if hash_local != hash_server:
-                                    continue
-                                else:
-                                    hash_check_success = True
-                                    files[index].uploaded = True
-                                    files[index].size_uploaded = files[index].size
-                                    if progress_callback:
-                                        progress_callback(files[index])
-                                    break
-                            elif data.get('state') == 3 or data.get('state') == 5:
-                                raise AgoraException(f"Failed to upload {cur_file}: there was an error joining the chunks")
-                        else:
-                            raise AgoraException(f"Failed to get the hash of the file from the server")
-                    if hash_check_success:
-                        break
-                else:
-                    break
-            else:
-                raise AgoraException(f"Failed to upload {cur_file}: the hash of the file does not match the server hash")
+                    if progress_callback:
+                        progress_callback(files[index])
 
         return True
 

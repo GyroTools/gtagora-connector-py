@@ -204,19 +204,13 @@ class ImportPackage(BaseModel):
             data = response.json()
             datafiles = []
 
-            if data and len(data) > 0 and not 'datafiles' in data[0]:
-                # old version of Agora which does not return the imported datafiles --> set all to imported (hack)
+            if data and not 'datafiles' in data:
                 for file in state.files:
                     file.imported = True
                 return
 
-            for entry in data:
-                datafiles.extend(entry.get('datafiles', []))
-            unique_datafiles_dict = {d['id']: d for d in datafiles}
-            datafiles = list(unique_datafiles_dict.values())
-
-            for datafile in datafiles:
-                indices = [i for i, f in enumerate(state.files) if Path(f.target).name == Path(datafile['name']).name and f.imported is False]
+            for datafile in data['datafiles']:
+                indices = [i for i, f in enumerate(state.files) if Path(f.target) == Path(datafile['path']) and f.imported is False]
                 if indices and len(indices) > 0:
                     for index in indices:
                         local_sha1 = sha1(Path(state.files[index].file))
@@ -346,7 +340,7 @@ class ImportPackage(BaseModel):
     def print_final_message(self, state):
         if state.verbose:
             nr_datafiles_imported = len([f for f in state.files if f.imported])
-            success = all([f.uploaded and f.imported for f in state.files])
+            success = all([f.imported for f in state.files])
             print("\nImport complete:")
             print(f'  Files Uploaded: {len(state.files)}, Files Imported: {nr_datafiles_imported}')
             if success:
