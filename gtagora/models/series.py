@@ -47,7 +47,13 @@ class Series(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, Bas
         return pars
 
     def copy_to_folder(self, target_folder_id):
-        url = f'{self.BASE_URL_V2}{self.id}/copy_to_project/{target_folder_id}/'
+        from gtagora.models.folder import Folder
+        folder_url = f'{Folder.BASE_URL}{target_folder_id}/'
+        response = self.http_client.get(folder_url, timeout=60)
+        if response.status_code != 200:
+            raise AgoraException(f'Could not find the folder with id = {target_folder_id}')
+        folder = Folder.from_response(response.json(), self.http_client)
+        url = f'{self.BASE_URL_V2}{self.id}/copy_to/{folder.project}/folder/{target_folder_id}/'
         response = self.http_client.post(url, json={}, timeout=60)
         if response.status_code != 200:
             raise AgoraException(f'Could not copy the series: status = {response.status_code}')
