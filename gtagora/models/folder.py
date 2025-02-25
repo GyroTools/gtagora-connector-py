@@ -186,7 +186,7 @@ class Folder(LinkToFolderMixin, TagMixin, RatingMixin, BaseModel):
 
         return downloaded_files
 
-    def upload(self, paths: List[Path], wait=True, verbose=False, relations: dict =None):
+    def upload(self, paths: List[Path], wait=False, verbose=False, relations: dict =None):
         for path in paths:
             if not path.exists():
                 raise FileNotFoundError(path.as_posix())

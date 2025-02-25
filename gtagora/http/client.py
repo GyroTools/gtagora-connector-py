@@ -62,7 +62,7 @@ class Client:
                 for chunk in response.iter_content(self.DOWNLOAD_CHUNK_SIZE):
                     file.write(chunk)
 
-    def upload(self, url, files: List[UploadFile], verify_hash=True, max_retries=5, progress_callback=None):
+    def upload(self, url, files: List[UploadFile], verify_hash=False, max_retries=5, progress_callback=None):
         response = self.get('/api/v1/version/')
         if response.status_code == 200:
             data = response.json()
@@ -156,6 +156,8 @@ class Client:
                             raise AgoraException(f"Failed to get the hash of the file from the server")
                     if hash_check_success:
                         break
+                else:
+                    break
             else:
                 raise AgoraException(f"Failed to upload {cur_file}: the hash of the file does not match the server hash")
 
