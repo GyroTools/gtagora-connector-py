@@ -16,6 +16,7 @@ setuptools.setup(
     install_requires=[
         "requests>=2.0",
         "packaging>=20.0",
+        "numpy",
     ],
     python_requires=">=3.6.0",
     classifiers=[

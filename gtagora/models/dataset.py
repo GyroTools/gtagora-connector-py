@@ -6,6 +6,7 @@ from gtagora.models.datafile import Datafile
 from gtagora.models.image_info import ImageInfo
 from gtagora.models.parameter import Parameter
 from gtagora.models.parameter_set import ParameterSet
+from gtagora.models.workbook import Workbook
 
 
 class DatasetType:
@@ -100,6 +101,15 @@ class Dataset(LinkToFolderMixin, TagMixin, RatingMixin, BaseModel):
         url = f'{self.BASE_URL}{self.id}/image_info/'
         info = self._get_object_list(url, None, ImageInfo)
         return info if info else None
+
+    def get_workbooks(self):
+        url = f'{self.BASE_URL_V2}{self.id}/workbook/'
+        workbooks = self._get_object_list(url, None, Workbook)
+        if not workbooks:
+            # create a new workbook if none exists
+            new_workbook = Workbook.create(self.id, self.http_client)
+            workbooks = [new_workbook]
+        return workbooks if workbooks else None
 
     def search_parameter(self, search_string):
         url = f'{self.BASE_URL}{self.id}/parameter/?search={search_string}&limit=10000000000'
