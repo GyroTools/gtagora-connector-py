@@ -92,8 +92,8 @@ class Folder(LinkToFolderMixin, TagMixin, RatingMixin, BaseModel):
         for item in items:
             if isinstance(item.object, Folder):
                 folders.append(item.object)
-                if recursive:
-                    folders = folders + item.get_folders(recursive)
+                if recursive and hasattr(item, 'object'):
+                    folders = folders + item.object.get_folders(recursive)
 
         return folders
 

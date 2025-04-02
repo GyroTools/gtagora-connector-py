@@ -38,36 +38,14 @@ class Exam(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, BaseM
         if filters and not isinstance(filters, dict):
             raise AgoraException('The filter must be a dict')
 
-        series = self.get_series()
-        datasets = []
-        for s in series:
-            datasets += s.get_datasets(filters)
-
-        datasets += self.get_files()
-
-        return datasets
+        # the api/v1/files returns all datafiles in the exams (including series)
+        url = f'{self.BASE_URL}{self.id}/files/?limit=10000000000'
+        return self._get_object_list(url, filters, Dataset)
 
     def get_files(self):
-        files = []
-
-        url = f'{self.BASE_URL}{self.id}/files/?limit=10000000000'
-        response = self.http_client.get(url)
-        if response.status_code == 200:
-            data = response.json()
-
-            if 'results' in data and 'count' in data:
-                results = data['results']
-                if data['count'] == 0:
-                    return files
-                if data['count'] != len(results):
-                    print('Warning: Could not get all files')
-
-                for curFile in results:
-                    files.append(Dataset(curFile, http_client=self.http_client))
-
-            return files
-
-        raise AgoraException('Could not get the series')
+        # the api/v2/datasets only returns the datasets which directly belongs to the exam
+        url = f'{self.BASE_URL_V2}{self.id}/datasets/?limit=10000000000'
+        return self._get_object_list(url, None, Dataset)
 
     def upload(self, paths: List[Path], verbose=False):
         for path in paths:
