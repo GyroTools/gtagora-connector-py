@@ -260,6 +260,16 @@ series = agora.get_series(76)
 dataset = agora.get_dataset(158)
 ```
 
+Get the relations of a series or an exam
+
+```python
+series = agora.get_series(76)
+relations = series.relations()
+
+exam = agora.get_exam(12)
+relations = exam.relations()
+```
+
 ### Tag Objects
 
 Get all tags the current user has access to:

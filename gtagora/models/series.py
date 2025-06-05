@@ -2,13 +2,14 @@ from pathlib import Path
 from typing import List
 
 from gtagora.exception import AgoraException
-from gtagora.models.base import LinkToFolderMixin, BaseModel, DownloadDatasetMixin, SearchMixin, TagMixin, RatingMixin
+from gtagora.models.base import LinkToFolderMixin, BaseModel, DownloadDatasetMixin, SearchMixin, TagMixin, RatingMixin, \
+    RelationMixin
 from gtagora.models.dataset import Dataset
 from gtagora.models.import_package import import_data
 from gtagora.models.timeline import TimelineItem
 
 
-class Series(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, BaseModel, SearchMixin):
+class Series(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, RelationMixin, SearchMixin, BaseModel):
     BASE_URL = '/api/v1/serie/'
     BASE_URL_V2 = '/api/v2/series/'
 

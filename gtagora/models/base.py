@@ -360,3 +360,31 @@ class RatingMixin:
 
 
         raise AgoraException(f'Cannot get the rating: {response.text}')
+
+
+class RelationMixin:
+    def relations(self):
+        url = f'{self.BASE_URL}{self.id}/datarelations/'
+        response = self.http_client.get(url)
+        if response.status_code == 200:
+            if not response.json() or not isinstance(response.json(), list) or len(response.json()) == 0:
+                return []
+            relations = []
+            for relation in response.json():
+                object = None
+                if relation.get('from_object', {}).get('object_id') == self.id:
+                    object = relation.get('to_object')
+                elif relation.get('to_object', {}).get('object_id') == self.id:
+                    object = relation.get('from_object')
+                if object:
+                    id = object.get('object_id', None)
+                    if not id:
+                        continue
+                    instance = self.get(id, http_client=self.http_client)
+                    if instance:
+                        relations.append(instance)
+                else:
+                    continue
+            return relations
+        else:
+            raise AgoraException(f'Cannot get the relations: {response.text}')
