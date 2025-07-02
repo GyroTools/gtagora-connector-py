@@ -70,9 +70,9 @@ class Dataset(LinkToFolderMixin, TagMixin, RatingMixin, BaseModel):
         self.cached_parametersets = parametersets
         return parametersets
 
-    def get_parameters(self):
+    def get_parameters(self, filter: str = None):
         if hasattr(self, 'parameters'):
-            return self.parameters
+            return self.filtered_parameters(filter)
 
         if hasattr(self, 'cached_parametersets'):
             parametersets = self.cached_parametersets
@@ -83,7 +83,13 @@ class Dataset(LinkToFolderMixin, TagMixin, RatingMixin, BaseModel):
             parameters.extend(parameterset.get_parameters())
 
         self.parameters = parameters
-        return parameters
+        return self.filtered_parameters(filter)
+
+    def filtered_parameters(self, filter):
+        if hasattr(self, 'parameters') and filter is not None:
+            return [p for p in self.parameters if filter in p.Name]
+        else:
+            return self.parameters
 
     def get_parameter(self, name):
         if hasattr(self, 'cached_parametersets'):
@@ -110,10 +116,6 @@ class Dataset(LinkToFolderMixin, TagMixin, RatingMixin, BaseModel):
             new_workbook = Workbook.create(self.id, self.http_client)
             workbooks = [new_workbook]
         return workbooks if workbooks else None
-
-    def search_parameter(self, search_string):
-        url = f'{self.BASE_URL}{self.id}/parameter/?search={search_string}&limit=10000000000'
-        return self._get_object_list(url, None, Parameter)
 
     def create(self, series_id=None, exam_id=None, folder_id=None, type=DatasetType.OTHER):
         url = Dataset.BASE_URL

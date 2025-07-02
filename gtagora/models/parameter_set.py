@@ -30,3 +30,19 @@ class ParameterSet(BaseModel):
             parameter = next((x for x in self.parameters if x.get('Name') == name), None)
             return Parameter.from_response(parameter) if parameter else None
         return None
+
+    @staticmethod
+    def diff(list1, list2):
+        dict1 = {p.Name: p.Value for p in list1}
+        dict2 = {p.Name: p.Value for p in list2}
+
+        only_in_1 = set(dict1) - set(dict2)
+        only_in_2 = set(dict2) - set(dict1)
+        in_both = set(dict1) & set(dict2)
+
+        diffs = {
+            "only_in_list1": {name: dict1[name] for name in only_in_1},
+            "only_in_list2": {name: dict2[name] for name in only_in_2},
+            "different_values": {name: (dict1[name], dict2[name]) for name in in_both if dict1[name] != dict2[name]},
+        }
+        return diffs

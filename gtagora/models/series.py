@@ -39,12 +39,14 @@ class Series(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, Rel
             if par:
                 return par
 
-    def search_parameter(self, search_string):
+    def get_parameters(self, filter: str = None):
         datasets = self.get_datasets()
         pars = []
         for dataset in datasets:
-            cur_pars = dataset.search_parameter(search_string)
-            pars.extend(cur_pars)
+            par = dataset.get_parameters(filter=filter)
+            if par:
+                pars.extend(par)
+        pars = list({p.Name: p for p in pars}.values())
         return pars
 
     def copy_to_folder(self, target_folder_id):
