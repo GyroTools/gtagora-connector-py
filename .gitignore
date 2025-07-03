@@ -19,3 +19,9 @@ tests/elisabetta.py
 tests/playground.py
 
 .idea/
+
+# Microservice temp files
+microservice/logs/
+microservice/.pytest_cache/
+microservice/__pycache__/
+microservice/*/__pycache__/
