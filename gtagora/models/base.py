@@ -1,6 +1,5 @@
 import pprint
 import re
-
 import unicodedata
 
 from gtagora.exception import AgoraException
@@ -104,11 +103,11 @@ class BaseModel:
         return dict( (key, value) for (key, value) in self.__dict__.items() if key not in excluded_keys and not key.startswith('__'))
 
     def content_type(self):
+        from gtagora.models.dataset import Dataset
         from gtagora.models.exam import Exam
         from gtagora.models.folder import Folder
-        from gtagora.models.series import Series
-        from gtagora.models.dataset import Dataset
         from gtagora.models.patient import Patient
+        from gtagora.models.series import Series
 
         if isinstance(self, Exam):
             return 'exam'
@@ -176,8 +175,8 @@ class DownloadDatasetMixin:
 
 class LinkToFolderMixin:
     def link_to_folder(self, folder):
-        from gtagora.models.folder_item import FolderItem
         from gtagora.models.folder import Folder
+        from gtagora.models.folder_item import FolderItem
 
         if isinstance(folder, Folder):
             folder_id = folder.id
@@ -257,8 +256,7 @@ class SearchMixin:
 
 class TagMixin:
     def tag(self, tag):
-        from gtagora.models.tag import Tag
-        from gtagora.models.tag import TagInstance
+        from gtagora.models.tag import Tag, TagInstance
 
         if isinstance(tag, Tag):
             tag_id = tag.id
@@ -299,7 +297,12 @@ class TagMixin:
 
         # at the moment we don't have the possibility to get a tag-instance for an object. So we have to get all
         # tag-instances for the project and then search for the object
-        url = Project.get_base_url() + f'{tag.project}/tag-instance/'
+        project = tag.project if tag.project else self.project if hasattr(self, 'project') else None        
+        if not project:
+            url = TagInstance.get_base_url()             
+        else:
+            url = Project.get_base_url() + f'{project}/tag-instance/'
+           
         response = self.http_client.get(url)
         if response.status_code == 200:
             tag_instances = TagInstance.get_list_from_data(response.json())
