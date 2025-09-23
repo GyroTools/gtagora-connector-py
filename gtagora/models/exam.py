@@ -86,14 +86,16 @@ class Exam(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, Relat
         if response.status_code != 200:
             raise AgoraException(f'Could not find the folder with id = {target_folder_id}')
         folder = Folder.from_response(response.json(), self.http_client)
-
-        url = f'{self.BASE_URL_V2}{self.id}/copy_to/{folder.project}/folder/{target_folder_id}/'
+        if folder.project == self.project:
+            url = f'{self.BASE_URL_V2}{self.id}/link_to/{target_folder_id}/'
+        else:
+            url = f'{self.BASE_URL_V2}{self.id}/copy_to/{folder.project}/folder/{target_folder_id}/'
 
         response = self.http_client.post(url, json={}, timeout=60)
-        if response.status_code != 200:
-            raise AgoraException(f'Could not copy the exam: status = {response.status_code}')
+        if response.status_code >= 400:
+            raise AgoraException(f'Could not copy the exam: status = {response.status_code}, message = {response.text}')
 
-        return self._get_new_exam_from_timeline(response)
+        return self._get_new_exam_from_timeline(response) if folder.project != self.project else self
 
     def move_to_project(self, project_id, target_folder_id=None):
         if not target_folder_id:

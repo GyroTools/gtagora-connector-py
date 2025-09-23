@@ -14,19 +14,37 @@ class DatasetType:
     PHILIPS_RAW = 100
     PHILIPS_PARREC = 101
     PHILIPS_SPECTRO = 102
-
+    PHILIPS_EXAMCARD = 103,
+    PHILIPS_SINFILE = 104,
     BRUKER_RAW = 200
     BRUKER_SUBJECT = 201
     BRUKER_IMAGE = 202
     DICOM = 300
     SIEMENS_RAW = 400
+    SIEMENS_PRO = 401
     ISMRMRD = 500
     NIFTI1 = 600
     NIFTI2 = 601
     NIFTI_ANALYZE75 = 602
     JMRUI_SPECTRO = 700
+    AEX = 800,
     QUERY = 10000
     OTHER = 100000
+
+    def get_name(self, id: int) -> str:
+        """Returns the name of the dataset type."""
+        for attr in dir(self):
+            if attr.isupper() and getattr(self, attr) == id:
+                return attr
+        return 'UNKNOWN'
+
+    def get_id(self, name: str) -> int:
+        """Returns the id of the dataset type."""
+        name = name.upper()
+        if hasattr(self, name):
+            return getattr(self, name)
+        else:
+            raise AgoraException(f'Unknown dataset type: {name}')
 
 
 class Dataset(LinkToFolderMixin, TagMixin, RatingMixin, BaseModel):
