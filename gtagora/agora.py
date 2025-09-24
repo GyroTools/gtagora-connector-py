@@ -10,6 +10,7 @@ from gtagora.models.dataset import Dataset
 from gtagora.models.exam import Exam
 from gtagora.models.folder import Folder
 from gtagora.models.group import Group
+from gtagora.models.import_json import ImportDataset, create_import_json
 from gtagora.models.import_package import import_data
 from gtagora.models.parameter_set import ParameterSet
 from gtagora.models.patient import Patient
@@ -19,6 +20,7 @@ from gtagora.models.tag import Tag
 from gtagora.models.task import Task
 from gtagora.models.upload_session import UploadSession
 from gtagora.models.user import User
+from gtagora.models.vendor import Vendor
 from gtagora.models.version import Version
 from gtagora.utils import validate_url
 
@@ -229,8 +231,7 @@ class Agora:
 
         Keyword Arguments:
             target_folder {Folder} -- The destination folder (default: {None})
-            json_import_file {Path} -- The path to a JSON import file. Will be used only in special cases.
-                                       (default: {None})
+            json_import_file {Path} -- The path to a JSON import file. Will be used to import data and parameters (default: {None})
             wait {bool} -- Wait until the full upload has been finished (default: {True})
             progress {bool} -- Show a progress (default: {False})
 
@@ -283,6 +284,24 @@ class Agora:
             raise FileNotFoundError("Directory doesn't exists")
 
         return import_data(self.http_client, paths=[directory], target_folder_id=target_folder_id, json_import_file=json_import_file, wait=wait, progress=progress, relations=relations)
+
+
+    def create_import_template(self, vendor: str = None, type: str = None, exam: Exam = None, series: Series = None,
+                               patient: Patient = None, files: List[Path] = None) -> dict:
+        """Creates a JSON import template which can be used to import data with the upload function. The template can be
+        passed to the upload function with the json_import_file parameter. It contains the datasets to be imported its
+        parameters and all the necessary information about the study, series and patient.
+
+        Keyword Arguments:
+            vendor {str} -- The vendor of the data (default: {None})
+            type {str} -- The type of the data (default: {None})
+            exam {Exam} -- An optional exam object. If None a new template exam will be created (default: {None})
+            series {Series} -- An optional series object. If None a new template series will be created (default: {None})
+            patient {Patient} -- An optional patient object. If None a new template patient will be created (default: {None})
+            files {List[Path]} -- A list of files to be imported. This should match the "paths" argument in the upload function(default: {None})
+        """
+
+        return create_import_json(vendor=vendor, type=type, exam=exam, series=series, patient=patient, files=files)
 
     # User
     def get_users(self):
@@ -370,6 +389,8 @@ class Agora:
         tag = Tag(http_client=self.http_client)
         return tag.create(name, user, project, group, color)
 
+    def get_vendors(self):
+        return Vendor.get_list(http_client=self.http_client)
 
     def close(self):
         pass

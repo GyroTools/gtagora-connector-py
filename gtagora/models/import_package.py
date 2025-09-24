@@ -204,6 +204,9 @@ class ImportPackage(BaseModel):
             data = response.json()
             datafiles = []
 
+            if not data:
+                return
+
             if data and not 'datafiles' in data:
                 for file in state.files:
                     file.imported = True
@@ -374,7 +377,12 @@ def import_data(http_client, paths: List[Path], target_folder_id: int = None, ex
         if not json_import_file.exists():
             raise FileNotFoundError(f"json_import_file {json_import_file} not found")
 
-    state = import_package.upload(paths,
+    # add json_import_file to the input_files if it is not already there
+    extended_paths = [p for p in paths]
+    if json_import_file and json_import_file not in paths:
+        extended_paths.append(json_import_file)
+
+    state = import_package.upload(extended_paths,
                           target_folder_id=target_folder_id,
                           exam_id=exam_id,
                           series_id=series_id,
