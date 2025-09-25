@@ -428,6 +428,66 @@ session.start()
 Furthermore, the advanced upload will verify the data integrity of the uploaded files by comparing file hashes. It also waits 
 for the data import to finish before returning and checks if all uploaded files are imported successfully. 
 
+### Custom Import
+
+When files are uploaded to Agora, the system analyzes each file and attempts to identify its format. If the format is 
+recognized and the file contains all required metadata for the patient, study, and series (e.g., DICOM), the data is 
+automatically imported and placed into the appropriate Study and Series structure. Files with unknown formats or missing
+metadata (e.g., Philips PAR/REC) are instead uploaded as ordinary files into an Agora dataset.
+
+However, you can import any (otherwise unsupported) file type into a Study/Series structure by uploading an additional 
+JSON file alongside the data, which contains the required patient, study, and series metadata. Using this mechanism you 
+can either create a new Study/Series from arbitrary files or add files to an existing Study/Series.
+
+The following example imports a Philips PAR/REC file into an existing Study and creates a new Series for it:
+
+First connect to Agora and get an existing exam:
+
+```python
+server = '<MY_AGORA_SERVER>'
+api_key = '<MY_API_KEY>'
+
+agora = Agora.create(server, api_key)
+exam_id = 37
+exam = agora.get_exam(exam_id)
+```
+
+Specify the local paths of the par/rec file to upload
+
+```python
+from pathlib import Path
+file_paths = [  Path(r"D:\temp\2d_ffe.par"),
+                Path(r"D:\temp\2d_ffe.rec")
+             ]
+```
+
+Create an import json template for the exam and the files to upload. The import template contains all necessary
+metadata about patient, study and series. After creation the template can be modified. Patient, Study and Series in 
+Agora are all identified by a UID in the JSON template. If the UID already exists in Agora, the uploaded files will be
+added to the existing object. If the UID does not exist, a new object will be created. Since we are passing an exam 
+argument to the `create_import_template` function, the data will be added to this Study. 
+
+```python
+import_json = agora.create_import_template(exam=exam, files=file_paths)
+# modify the series parameter of the import json template
+import_json['ImportParameter']['Series']['Name'] = 'My New Series'
+import_json['ImportParameter']['Series']['AcquisitionNumber'] = 7
+```
+
+We save the import json template to a file and pass it to the upload function as argument so it is used for the import
+
+```python
+import json
+json_file = Path(r'C:\temp\import_template.json')
+json.dump(import_json, open(json_file, 'w'), indent=2)
+
+# upload the files and import them using the import json file
+target_folder_id = 15
+agora.upload(file_paths, json_import_file=json_file, target_folder_id=target_folder_id, wait=True, verbose=True)
+```
+
+After the upload is finished you should see a new Series with the name `My New Series` in the existing Study with the
+uploaded par/rec dataset.
 
 ### Working with tasks
 
