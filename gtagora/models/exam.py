@@ -109,6 +109,26 @@ class Exam(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, Relat
 
         return self._get_new_exam_from_timeline(response)
 
+    def lock(self):
+        url = f'{self.BASE_URL_V2}lock_ids/'
+        body = {"ids": [self.id]}
+        response = self.http_client.post(url, body)
+        if response.status_code != 200:
+            raise AgoraException(f'Could not lock the exam: status = {response.status_code}')
+
+        self.locked = True
+        return self
+
+    def unlock(self):
+        url = f'{self.BASE_URL_V2}unlock_ids/'
+        body = {"ids": [self.id]}
+        response = self.http_client.post(url, body)
+        if response.status_code != 200:
+            raise AgoraException(f'Could not unlock the exam: status = {response.status_code}')
+
+        self.locked = True
+        return self
+
     def __str__(self):
         return f"Exam: {self.name}"
 

@@ -241,6 +241,13 @@ Get all datasets of an exam
 series = exam.get_datasets()
 ```
 
+Lock and unlock an exam 
+
+```python
+exam.lock()
+exam.unlock()
+```
+
 Get a list of all patients
 
 ```python
