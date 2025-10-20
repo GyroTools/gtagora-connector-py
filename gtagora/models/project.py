@@ -46,7 +46,14 @@ class Project(BaseModel):
 
     def get_tasks(self):
         url = f'{self.BASE_URL}{self.id}/task/?limit=10000000000'
-        return self._get_object_list(url, None, Task)
+        ui_tasks = self._get_object_list(url, None, Task)
+
+        url_yaml = f'{self.BASE_URL}{self.id}/taskdefinition_yaml/?limit=10000000000'
+        yaml_tasks = self._get_object_list(url_yaml, None, Task)
+
+        tasks = ui_tasks + yaml_tasks
+        return sorted(tasks, key=lambda o: o.name.lower())
+
 
     def import_tasks(self, file):
         with open(file) as json_file:
