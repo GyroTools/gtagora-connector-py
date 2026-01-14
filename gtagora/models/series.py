@@ -82,3 +82,20 @@ class Series(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, Rel
                         pass
 
         return None
+
+    def get_tree(self, parse=True):
+        url = f'{self.BASE_URL_V2}{self.id}/tree/'
+        response = self.http_client.get(url)
+        if response.status_code != 200:
+            raise AgoraException(f'Could not get the series tree: status = {response.status_code}')
+        if parse:
+            return self._get_tree_from_data(response.json(), self.http_client)
+        else:
+            return response.json()
+
+    @staticmethod
+    def _get_tree_from_data(data: dict, http_client=None):
+        series_tree = Series.from_response(data, http_client=http_client)
+        new_datasets = [Dataset.from_response(ds_json) for ds_json in series_tree.datasets]
+        series_tree.datasets = new_datasets
+        return series_tree

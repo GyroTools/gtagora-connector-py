@@ -129,6 +129,25 @@ class Exam(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, Relat
         self.locked = True
         return self
 
+    def get_tree(self, parse=True):
+        url = f'{self.BASE_URL_V2}{self.id}/tree/'
+        response = self.http_client.get(url)
+        if response.status_code != 200:
+            raise AgoraException(f'Could not get the exam tree: status = {response.status_code}')
+        if parse:
+            return self._get_tree_from_data(response.json(), self.http_client)
+        else:
+            return response.json()
+
+    @staticmethod
+    def _get_tree_from_data(data: dict, http_client=None):
+        exam_tree = Exam.from_response(data, http_client=http_client)
+        new_series = [Series._get_tree_from_data(s, http_client=http_client) for s in exam_tree.series]
+        new_datasets = [Dataset.from_response(ds_json) for ds_json in exam_tree.datasets]
+        exam_tree.series = new_series
+        exam_tree.datasets = new_datasets
+        return exam_tree
+
     def __str__(self):
         return f"Exam: {self.name}"
 

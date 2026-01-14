@@ -128,5 +128,17 @@ class Project(BaseModel):
         else:
             return self.name
 
+    def get_study_tree(self, parse=True):
+        url = f'{self.BASE_URL}{self.id}/tree/'
+        response = self.http_client.get(url)
+        if response.status_code != 200:
+            raise AgoraException(f'Could not get the study tree: status = {response.status_code}')
+        exams = response.json()
+        if parse:
+            for i, e in enumerate(exams):
+                new_exam = Exam._get_tree_from_data(e, self.http_client)
+                exams[i] = new_exam
+        return exams
+
     def __str__(self):
         return f"Project: {self.get_display_name()}"

@@ -143,6 +143,17 @@ class Folder(LinkToFolderMixin, TagMixin, RatingMixin, BaseModel):
         url = f'{self.BASE_URL}{self.id}/breadcrumb/?limit=10000000000'
         return self._get_object_list(url, None, Breadcrumb)
 
+    def get_tree(self, parse=True):
+        url = f'{self.BASE_URL_V2}{self.id}/tree/'
+        response = self.http_client.get(url)
+        if response.status_code != 200:
+            raise AgoraException(f'Could not get the folder tree: status = {response.status_code}')
+        if parse:
+            data = response.json()
+            pass
+        else:
+            return response.json()
+
     def path(self):
         breadcrumb = self.get_breadcrumb()
         first = True
