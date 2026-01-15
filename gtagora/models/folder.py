@@ -150,9 +150,30 @@ class Folder(LinkToFolderMixin, TagMixin, RatingMixin, BaseModel):
             raise AgoraException(f'Could not get the folder tree: status = {response.status_code}')
         if parse:
             data = response.json()
-            pass
+            root = Folder.from_response(data.get('content_object'))
+            new_items = self._parse_items(root.items)
+            root.items = new_items
+            return root
         else:
             return response.json()
+
+    def _parse_items(self, items):
+        new_items = []
+        for item in items:
+            if item.get('content_type') == 'folder':
+                folder = Folder.from_response(item.get('content_object'), http_client=self.http_client)
+                folder.items = self._parse_items(folder.items)
+                new_items.append(folder)
+            elif item.get('content_type') == 'exam':
+                exam = Exam.from_response(item.get('content_object'), http_client=self.http_client)
+                new_items.append(exam)
+            elif item.get('content_type') == 'serie' or item.get('content_type') == 'series':
+                series = Series.from_response(item.get('content_object'), http_client=self.http_client)
+                new_items.append(series)
+            elif item.get('content_type') == 'dataset':
+                dataset = Dataset.from_response(item.get('content_object'), http_client=self.http_client)
+                new_items.append(dataset)
+        return new_items
 
     def path(self):
         breadcrumb = self.get_breadcrumb()

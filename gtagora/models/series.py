@@ -3,13 +3,13 @@ from typing import List
 
 from gtagora.exception import AgoraException
 from gtagora.models.base import LinkToFolderMixin, BaseModel, DownloadDatasetMixin, SearchMixin, TagMixin, RatingMixin, \
-    RelationMixin
+    RelationMixin, UIDGetMixin
 from gtagora.models.dataset import Dataset
 from gtagora.models.import_package import import_data
 from gtagora.models.timeline import TimelineItem
 
 
-class Series(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, RelationMixin, SearchMixin, BaseModel):
+class Series(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, RelationMixin, SearchMixin, BaseModel, UIDGetMixin):
     BASE_URL = '/api/v1/serie/'
     BASE_URL_V2 = '/api/v2/series/'
 

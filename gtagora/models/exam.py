@@ -1,7 +1,8 @@
 from typing import List
 
 from gtagora.exception import AgoraException
-from gtagora.models.base import BaseModel, LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, RelationMixin
+from gtagora.models.base import BaseModel, LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, \
+    RelationMixin, UIDGetMixin
 from gtagora.models.dataset import Dataset
 from gtagora.models.import_package import import_data
 from gtagora.models.series import Series
@@ -11,7 +12,7 @@ from gtagora.utils import remove_illegal_chars
 from pathlib import Path
 
 
-class Exam(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, RelationMixin, BaseModel):
+class Exam(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, RelationMixin, BaseModel, UIDGetMixin):
     BASE_URL = '/api/v1/exam/'
     BASE_URL_V2 = '/api/v2/exam/'
 

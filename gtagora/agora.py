@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List
+from typing import List, Union
 
 import urllib3
 
@@ -194,12 +194,28 @@ class Agora:
     def get_exam(self, exam_id: int):
         return Exam.get(exam_id, http_client=self.http_client)
 
+    def get_exam_by_uid(self, project: Union[int, Project], uid: str):
+        if isinstance(project, Project):
+            project = project.id
+        try:
+            return Exam.get_by_uid(project, uid, http_client=self.http_client)
+        except AgoraException:
+            return None
+
     # Series
     def get_series_list(self, filters=None):
         return Series.get_list(filters, http_client=self.http_client)
 
     def get_series(self, series_id):
         return Series.get(series_id, http_client=self.http_client)
+
+    def get_series_by_uid(self, project: Union[int, Project], uid: str):
+        if isinstance(project, Project):
+            project = project.id
+        try:
+            return Series.get_by_uid(project, uid, http_client=self.http_client)
+        except AgoraException:
+            return None
 
     def get_dataset(self, dataset_id):
         return Dataset.get(dataset_id, http_client=self.http_client)

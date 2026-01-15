@@ -391,3 +391,22 @@ class RelationMixin:
             return relations
         else:
             raise AgoraException(f'Cannot get the relations: {response.text}')
+
+
+class UIDGetMixin:
+    @classmethod
+    def get_by_uid(cls, project_id, uid, http_client=None):
+        instance = cls(http_client=http_client)
+
+        if not isinstance(uid, str):
+            raise AgoraException('The UID must be a string')
+
+        model = instance.content_type()
+        if model == 'serie':
+            model = 'series'
+        url = f'/api/v2/project/{project_id}/{model}/uid/{uid}/'
+        response = http_client.get(url)
+        if response.status_code == 200:
+            return instance.from_response(response.json(), http_client=http_client)
+        else:
+            raise AgoraException(f'Could not get the {cls.__name__} with UID {uid}: {response.text}')
