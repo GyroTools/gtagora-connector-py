@@ -42,6 +42,7 @@ class UploadState:
     import_package: int
     files: List[UploadFile]
     target_folder_id: Union[dict, None] = None
+    target_project_id: Union[dict, None] = None
     exam_id: Union[dict, None] = None
     series_id: Union[dict, None] = None
     json_import_file: Union[Path, None] = None

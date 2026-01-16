@@ -238,7 +238,7 @@ class Agora:
         return Series.search(aSearchString, self.http_client)
 
     # Import
-    def upload(self, paths: List[Path], target_folder_id: Folder = None, json_import_file: Path = None, wait=True,
+    def upload(self, paths: List[Path], target_folder_id: int = None, target_project_id: int = None, json_import_file: Path = None, wait=True,
                verbose=False, relations: dict =None, progress_file:Path = None):
         """Upload and import files to Agora
 
@@ -246,7 +246,8 @@ class Agora:
             paths {List[Path]} -- A list of files or directories to upload (default: {None})
 
         Keyword Arguments:
-            target_folder {Folder} -- The destination folder (default: {None})
+            target_folder_id {int} -- The destination folder id (default: {None})
+            target_project_id {int} -- The destination project id. Only allowed with json_import_file (default: {None})
             json_import_file {Path} -- The path to a JSON import file. Will be used to import data and parameters (default: {None})
             wait {bool} -- Wait until the full upload has been finished (default: {True})
             progress {bool} -- Show a progress (default: {False})
@@ -261,7 +262,13 @@ class Agora:
             if not path.exists():
                 raise FileNotFoundError(path.as_posix())
 
-        return import_data(self.http_client, paths=paths, target_folder_id=target_folder_id,
+        if target_project_id is not None and json_import_file is None:
+            raise AgoraException('The target_project_id can only be used together with a json_import_file. If you want to import into the projects root folder please use target_folder_id instead.')
+
+        if target_project_id is not None and target_folder_id is not None:
+            raise AgoraException('The target_project_id and target_folder_id cannot be used together. Please use only one of them.')
+
+        return import_data(self.http_client, paths=paths, target_folder_id=target_folder_id, target_project_id=target_project_id,
                            json_import_file=json_import_file, wait=wait, verbose=verbose, relations=relations,
                            progress_file=progress_file)
 

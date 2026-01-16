@@ -33,7 +33,7 @@ class ImportPackage(BaseModel):
         full_url = self.http_client.connection.url + url
         raise AgoraException(f"Can't create an Import object: url={full_url} status_code={response.status_code}")
 
-    def upload(self, input_files: List[Path], target_folder_id: int = None, exam_id=None, series_id= None,
+    def upload(self, input_files: List[Path], target_folder_id: int = None, target_project_id: int = None, exam_id=None, series_id= None,
                json_import_file=None, wait=True, timeout: int = None, verbose=False, relations: dict = None,
                progress_file: Path = None):
 
@@ -43,17 +43,18 @@ class ImportPackage(BaseModel):
         if progress_file and not progress_file.exists():
             progress_file.parent.mkdir(parents=True, exist_ok=True)
 
-        state = self.create_state(input_files, target_folder_id=target_folder_id, exam_id=exam_id, series_id=series_id,
+        state = self.create_state(input_files, target_folder_id=target_folder_id, target_project_id=target_project_id, exam_id=exam_id, series_id=series_id,
                                   json_import_file=json_import_file, wait=wait, timeout=timeout, verbose=verbose,
                                   relations=relations)
 
         state.save(progress_file)
         return self.upload_from_state(state, progress_file=progress_file)
 
-    def create_state(self, input_files: List[Path], target_folder_id: int = None, exam_id=None, series_id=None,
+    def create_state(self, input_files: List[Path], target_folder_id: int = None, target_project_id: int = None, exam_id=None, series_id=None,
                      json_import_file=None, wait=True, timeout: int = None, verbose=False, relations: dict = None):
         state = self._create_upload_state(input_files, relations=relations)
         state.target_folder_id = target_folder_id
+        state.target_project_id = target_project_id
         state.exam_id = exam_id
         state.series_id = series_id
         state.json_import_file = json_import_file
@@ -116,7 +117,8 @@ class ImportPackage(BaseModel):
             appendix = f'({self.pretty_print_progress(total_size, total_size)}, file {len(state.files)} of {len(state.files)})'
             self.print_progress(progress=1, appendix=appendix)
 
-        if self.complete(state.json_import_file, target_folder_id=state.target_folder_id, exam_id=state.exam_id,
+        if self.complete(state.json_import_file, target_folder_id=state.target_folder_id,
+                         target_project_id=state.target_project_id, exam_id=state.exam_id,
                          series_id=state.series_id, relations=state.relations):
             if state.wait:
                 if state.verbose:
@@ -143,13 +145,15 @@ class ImportPackage(BaseModel):
 
                 raise AgoraException(f'connection timed out while waiting for the import to finish')
 
-    def complete(self, json_import_file=None, target_folder_id=None, exam_id=None, series_id=None, relations: dict = None):
+    def complete(self, json_import_file=None, target_folder_id=None, target_project_id=None, exam_id=None, series_id=None, relations: dict = None):
         url = self.BASE_URL + str(self.id) + '/complete/'
         post_data = {}
         if json_import_file:
             post_data.update({'import_file': json_import_file})
         if target_folder_id:
             post_data.update({'folder': target_folder_id})
+        if target_project_id:
+            post_data.update({'project': target_project_id})
         if exam_id:
             post_data.update({'exam': exam_id})
         if series_id:
@@ -356,7 +360,7 @@ class ImportPackage(BaseModel):
         return state
 
 
-def import_data(http_client, paths: List[Path], target_folder_id: int = None, exam_id=None, series_id= None,
+def import_data(http_client, paths: List[Path], target_folder_id: int = None, target_project_id: int = None, exam_id=None, series_id= None,
                 json_import_file: Path = None, wait=True, verbose=False, relations: dict =None,
                 progress_file: Path = None):
     """
@@ -384,6 +388,7 @@ def import_data(http_client, paths: List[Path], target_folder_id: int = None, ex
 
     state = import_package.upload(extended_paths,
                           target_folder_id=target_folder_id,
+                          target_project_id=target_project_id,
                           exam_id=exam_id,
                           series_id=series_id,
                           json_import_file=json_import_file.name if json_import_file else None,
