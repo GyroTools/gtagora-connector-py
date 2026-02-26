@@ -1,4 +1,5 @@
 from gtagora.exception import AgoraException
+from gtagora.http.client import ProgressCallback
 from gtagora.models.base import LinkToFolderMixin, BaseModel, TagMixin, RatingMixin
 from gtagora.models.breadcrumb import Breadcrumb
 from gtagora.models.dataset import Dataset
@@ -10,7 +11,7 @@ from gtagora.models.series import Series
 from gtagora.utils import remove_illegal_chars
 
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 from functools import partial
 
 
@@ -218,11 +219,11 @@ class Folder(LinkToFolderMixin, TagMixin, RatingMixin, BaseModel):
 
         return downloaded_files
 
-    def upload(self, paths: List[Path], wait=False, verbose=False, relations: dict =None):
+    def upload(self, paths: List[Path], wait=False, verbose=False, relations: dict =None, progress_callback: Optional[ProgressCallback] = None):
         for path in paths:
             if not path.exists():
                 raise FileNotFoundError(path.as_posix())
-        return import_data(self.http_client, paths=paths, target_folder_id=self.id, wait=wait, verbose=verbose, relations=relations)
+        return import_data(self.http_client, paths=paths, target_folder_id=self.id, wait=wait, verbose=verbose, relations=relations, progress_callback=progress_callback)
 
     def create_folder(self, name):
         url = f'{self.BASE_URL}{self.id}/new/'

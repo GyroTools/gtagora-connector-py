@@ -6,13 +6,14 @@ import time
 import uuid
 from dataclasses import dataclass, make_dataclass
 from pathlib import Path
-from typing import Union, List
+from typing import Union, List, Callable, Optional
 
 import requests
 
 from gtagora.exception import AgoraException
 from gtagora.utils import sha256, UploadFile, UploadState
 
+ProgressCallback = Callable[[UploadFile], None]
 
 class Client:
     TIMEOUT = 20
@@ -63,7 +64,7 @@ class Client:
                 for chunk in response.iter_content(self.DOWNLOAD_CHUNK_SIZE):
                     file.write(chunk)
 
-    def upload(self, url, files: List[UploadFile], verify_hash=False, max_retries=5, progress_callback=None):
+    def upload(self, url, files: List[UploadFile], verify_hash=False, max_retries=5, progress_callback: Optional[ProgressCallback]=None):
         response = self.get('/api/v1/version/')
         if response.status_code == 200:
             data = response.json()
@@ -134,6 +135,9 @@ class Client:
 
                     if progress_callback:
                         progress_callback(files[index])
+
+            files[index].uploaded = True
+            progress_callback(files[index])
 
         return True
 

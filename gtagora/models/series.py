@@ -1,7 +1,8 @@
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from gtagora.exception import AgoraException
+from gtagora.http.client import ProgressCallback
 from gtagora.models.base import LinkToFolderMixin, BaseModel, DownloadDatasetMixin, SearchMixin, TagMixin, RatingMixin, \
     RelationMixin, UIDGetMixin
 from gtagora.models.dataset import Dataset
@@ -20,11 +21,11 @@ class Series(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, Rel
         url = f'{self.BASE_URL}{self.id}/datasets/?limit=10000000000'
         return self._get_object_list(url, filters, Dataset)
 
-    def upload(self, paths: List[Path], verbose=False):
+    def upload(self, paths: List[Path], verbose=False, progress_callback: Optional[ProgressCallback] = None):
         for path in paths:
             if not path.exists():
                 raise FileNotFoundError(path.as_posix())
-        return import_data(self.http_client, paths=paths, series_id=self.id, wait=False, verbose=verbose)
+        return import_data(self.http_client, paths=paths, series_id=self.id, wait=False, verbose=verbose, progress_callback=progress_callback)
 
     def upload_dataset(self, input_files, dataset_type, target_files=None):
         # This function creates a dataset of a given type all files given as input will be added to one dataset.

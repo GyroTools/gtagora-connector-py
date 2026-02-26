@@ -1,6 +1,7 @@
-from typing import List
+from typing import List, Optional
 
 from gtagora.exception import AgoraException
+from gtagora.http.client import ProgressCallback
 from gtagora.models.base import BaseModel, LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, \
     RelationMixin, UIDGetMixin
 from gtagora.models.dataset import Dataset
@@ -48,11 +49,11 @@ class Exam(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, Relat
         url = f'{self.BASE_URL_V2}{self.id}/datasets/?limit=10000000000'
         return self._get_object_list(url, None, Dataset)
 
-    def upload(self, paths: List[Path], verbose=False):
+    def upload(self, paths: List[Path], verbose=False, progress_callback: Optional[ProgressCallback] = None):
         for path in paths:
             if not path.exists():
                 raise FileNotFoundError(path.as_posix())
-        return import_data(self.http_client, paths=paths, exam_id=self.id, wait=False, verbose=verbose)
+        return import_data(self.http_client, paths=paths, exam_id=self.id, wait=False, verbose=verbose, progress_callback=progress_callback)
 
     def download(self, target_path: Path):
         for series in self.get_series():

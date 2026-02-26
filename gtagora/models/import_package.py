@@ -5,9 +5,10 @@ import tempfile
 import time
 import uuid
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from gtagora.exception import AgoraException
+from gtagora.http.client import ProgressCallback
 from gtagora.models.base import BaseModel
 from gtagora.utils import ZipUploadFiles, sha1, UploadFile, UploadState
 
@@ -35,7 +36,7 @@ class ImportPackage(BaseModel):
 
     def upload(self, input_files: List[Path], target_folder_id: int = None, target_project_id: int = None, exam_id=None, series_id= None,
                json_import_file=None, wait=True, timeout: int = None, verbose=False, relations: dict = None,
-               progress_file: Path = None):
+               progress_file: Path = None, progress_callback: Optional[ProgressCallback] = None):
 
         if progress_file is not None and not isinstance(progress_file, Path):
             raise AgoraException(f'progress must be a Path object')
@@ -48,7 +49,7 @@ class ImportPackage(BaseModel):
                                   relations=relations)
 
         state.save(progress_file)
-        return self.upload_from_state(state, progress_file=progress_file)
+        return self.upload_from_state(state, progress_file=progress_file, progress_callback_user=progress_callback)
 
     def create_state(self, input_files: List[Path], target_folder_id: int = None, target_project_id: int = None, exam_id=None, series_id=None,
                      json_import_file=None, wait=True, timeout: int = None, verbose=False, relations: dict = None):
@@ -63,8 +64,10 @@ class ImportPackage(BaseModel):
         state.verbose = verbose
         return state
 
-    def upload_from_state(self, state: UploadState, progress_file: Path = None):
+    def upload_from_state(self, state: UploadState, progress_file: Path = None, progress_callback_user: Optional[ProgressCallback] = None):
         def progress_callback(file: UploadFile):
+            if progress_callback_user:
+                progress_callback_user(file)
             if state and state.files:
                 # update state
                 index = next((i for i, item in enumerate(state.files) if item.file == file.file), None)
@@ -362,7 +365,7 @@ class ImportPackage(BaseModel):
 
 def import_data(http_client, paths: List[Path], target_folder_id: int = None, target_project_id: int = None, exam_id=None, series_id= None,
                 json_import_file: Path = None, wait=True, verbose=False, relations: dict =None,
-                progress_file: Path = None):
+                progress_file: Path = None, progress_callback: Optional[ProgressCallback] = None):
     """
     Import a directory or a list of files with optional target file names.
 
@@ -395,5 +398,6 @@ def import_data(http_client, paths: List[Path], target_folder_id: int = None, ta
                           wait=wait,
                           verbose=verbose,
                           relations=relations,
-                          progress_file=progress_file)
+                          progress_file=progress_file,
+                          progress_callback=progress_callback)
     return state

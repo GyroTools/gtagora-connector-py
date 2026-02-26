@@ -1,10 +1,10 @@
 from pathlib import Path
-from typing import List, Union
+from typing import List, Union, Optional
 
 import urllib3
 
 from gtagora.exception import AgoraException
-from gtagora.http.client import Client
+from gtagora.http.client import Client, ProgressCallback
 from gtagora.http.connection import ApiKeyConnection, TokenConnection
 from gtagora.models.dataset import Dataset
 from gtagora.models.exam import Exam
@@ -239,7 +239,7 @@ class Agora:
 
     # Import
     def upload(self, paths: List[Path], target_folder_id: int = None, target_project_id: int = None, json_import_file: Path = None, wait=True,
-               verbose=False, relations: dict =None, progress_file:Path = None):
+               verbose=False, relations: dict =None, progress_file:Path = None, progress_callback: Optional[ProgressCallback] = None):
         """Upload and import files to Agora
 
         Arguments:
@@ -270,7 +270,7 @@ class Agora:
 
         return import_data(self.http_client, paths=paths, target_folder_id=target_folder_id, target_project_id=target_project_id,
                            json_import_file=json_import_file, wait=wait, verbose=verbose, relations=relations,
-                           progress_file=progress_file)
+                           progress_file=progress_file, progress_callback=progress_callback)
 
     def create_upload_session(self, paths: List[Path] = None, progress_file:Path = None, target_folder_id: int = None,
                               json_import_file: Path = None, verbose=True, relations: dict =None):
@@ -286,7 +286,7 @@ class Agora:
         return session
 
     def import_directory(self, directory: Path, target_folder_id: int = None, json_import_file: Path = None, wait=True,
-                         progress=False, relations: dict =None):
+                        relations: dict =None, progress_callback: Optional[ProgressCallback] = None):
         """Upload and import a directory to Agora.
 
         The directory sturcture of all subdirectries will be preserved.
@@ -306,7 +306,9 @@ class Agora:
         if directory.exists is False:
             raise FileNotFoundError("Directory doesn't exists")
 
-        return import_data(self.http_client, paths=[directory], target_folder_id=target_folder_id, json_import_file=json_import_file, wait=wait, progress=progress, relations=relations)
+        return import_data(self.http_client, paths=[directory], target_folder_id=target_folder_id,
+                           json_import_file=json_import_file, wait=wait,
+                           relations=relations, progress_callback=progress_callback)
 
 
     def create_import_template(self, vendor: str = None, type: str = None, exam: Exam = None, series: Series = None,
