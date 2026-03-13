@@ -1,10 +1,7 @@
-import os
-
 from gtagora.exception import AgoraException
 from gtagora.models.base import BaseModel, LinkToFolderMixin, TagMixin, RatingMixin
 from gtagora.models.datafile import Datafile
 from gtagora.models.image_info import ImageInfo
-from gtagora.models.parameter import Parameter
 from gtagora.models.parameter_set import ParameterSet
 from gtagora.models.workbook import Workbook
 
@@ -185,11 +182,28 @@ class Dataset(LinkToFolderMixin, TagMixin, RatingMixin, BaseModel):
 
         raise AgoraException("Failed to create a new dataset")
 
-    def copy_to_folder(self, target_folder_id):
-        url = f'{self.BASE_URL_V2}{self.id}/copy_to_project/{target_folder_id}/'
+    def copy_to_folder(self, target_folder):
+        from gtagora.models.folder import Folder
+        if isinstance(target_folder, int):
+            target_folder = Folder.get(target_folder, http_client=self.http_client)
+        project_id = target_folder.project
+
+        url = f'{self.BASE_URL_V2}{self.id}/copy_to/{project_id}/folder/{target_folder.id}/'
         response = self.http_client.post(url, json={}, timeout=60)
         if response.status_code != 200:
             raise AgoraException(f'Could not copy the dataset: status = {response.status_code}, message = {response.text}')
+        return Dataset.from_response(response.json(), self.http_client)
+
+    def move_to_folder(self, target_folder):
+        from gtagora.models.folder import Folder
+        if isinstance(target_folder, int):
+            target_folder = Folder.get(target_folder, http_client=self.http_client)
+        project_id = target_folder.project
+
+        url = f'{self.BASE_URL_V2}{self.id}/move_to/{project_id}/folder/{target_folder.id}/'
+        response = self.http_client.post(url, json={}, timeout=60)
+        if response.status_code != 200:
+            raise AgoraException(f'Could not move the dataset: status = {response.status_code}, message = {response.text}')
         return Dataset.from_response(response.json(), self.http_client)
 
     def __str__(self):
