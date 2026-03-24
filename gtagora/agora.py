@@ -17,7 +17,7 @@ from gtagora.models.patient import Patient
 from gtagora.models.project import Project
 from gtagora.models.series import Series
 from gtagora.models.tag import Tag
-from gtagora.models.task import Task
+from gtagora.models.task import ScriptTask, Task, TaskType
 from gtagora.models.upload_session import UploadSession
 from gtagora.models.user import User
 from gtagora.models.vendor import Vendor
@@ -223,8 +223,16 @@ class Agora:
     def get_parameterset(self, parameterset_id):
         return ParameterSet.get(parameterset_id, http_client=self.http_client)
 
-    def get_task(self, task_id):
+    def get_task(self, task_id, type=TaskType.UI):
+        if type == TaskType.SCRIPT:
+            return self.get_script_task(task_id)
+        return self.get_ui_task(task_id)
+
+    def get_ui_task(self, task_id):
         return Task.get(task_id, http_client=self.http_client)
+
+    def get_script_task(self, task_id):
+        return ScriptTask.get(task_id, http_client=self.http_client)
 
     def delete_task(self, task_id):
         url = f'{Task.BASE_URL}{task_id}/'

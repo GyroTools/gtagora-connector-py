@@ -6,7 +6,7 @@ from gtagora.models.exam import Exam
 from gtagora.models.folder import Folder
 from gtagora.models.host import Host
 from gtagora.models.project_role import ProjectRole
-from gtagora.models.task import Task
+from gtagora.models.task import Task, ScriptTask
 from gtagora.models.trash import Trash
 
 
@@ -49,7 +49,7 @@ class Project(BaseModel):
         ui_tasks = self._get_object_list(url, None, Task)
 
         url_yaml = f'{self.BASE_URL}{self.id}/taskdefinition_yaml/?limit=10000000000'
-        yaml_tasks = self._get_object_list(url_yaml, None, Task)
+        yaml_tasks = self._get_object_list(url_yaml, None, ScriptTask)
 
         tasks = ui_tasks + yaml_tasks
         return sorted(tasks, key=lambda o: o.name.lower())

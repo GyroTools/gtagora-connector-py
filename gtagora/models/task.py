@@ -6,6 +6,11 @@ from gtagora.models.base import BaseModel
 from gtagora.models.timeline import TimelineItem
 
 
+class TaskType:
+    UI = 'ui'
+    SCRIPT = 'script'
+
+
 class Task(BaseModel):
 
     BASE_URL = '/api/v1/taskdefinition/'
@@ -242,3 +247,7 @@ class Task(BaseModel):
         elif type == Task.INPUT_TYPE_SELECT:
             return 'select'
 
+
+class ScriptTask(Task):
+
+    BASE_URL = '/api/v2/taskdefinition_yaml/'
