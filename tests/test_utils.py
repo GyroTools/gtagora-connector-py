@@ -1,7 +1,10 @@
 import zipfile
 from pathlib import Path
 
-from gtagora.utils import get_file_info, ZipUploadFiles, validate_url
+import pytest
+
+from gtagora.exception import AgoraException
+from gtagora.utils import get_file_info, UploadFile, ZipUploadFiles, validate_url
 
 
 def test_get_file_info(tempdir_with_dummy_files):
@@ -18,36 +21,35 @@ def test_get_file_info(tempdir_with_dummy_files):
 
 class TestZipUploadFiles:
 
+    def _make_upload_files(self, input_files, target_files):
+        return [UploadFile(id=i, file=f, target=t) for i, (f, t) in enumerate(zip(input_files, target_files))]
+
     def test_create_zip_1(self, zip_upload_files_test_data):
         test_data = zip_upload_files_test_data
-        input_files = test_data.input_files
-        target_files = test_data.target_files
         upload_path = test_data.upload_path
+        upload_files = self._make_upload_files(test_data.input_files, test_data.target_files)
 
-        zip_uploads = ZipUploadFiles(input_files, target_files)
-        final_input_files, final_target_files = zip_uploads.create_zip(upload_path)
+        result = ZipUploadFiles(upload_files).create_zip(upload_path)
 
-        assert final_input_files == [Path(upload_path, 'upload_0.agora_upload')]
-        assert final_target_files == ['upload_0.agora_upload']
+        assert len(result) == 1
+        assert result[0].file == Path(upload_path, 'upload_0.agora_upload')
+        assert result[0].target == 'upload_0.agora_upload'
 
-        zip_file_path = final_input_files[0]
-        with zipfile.ZipFile(zip_file_path, 'r') as z:
+        with zipfile.ZipFile(result[0].file, 'r') as z:
             assert len(z.infolist()) == 25
-            assert [info.filename for info in z.infolist()] == target_files
+            assert [info.filename for info in z.infolist()] == test_data.target_files
 
     def test_create_zip_2(self, zip_upload_files_test_data):
         test_data = zip_upload_files_test_data
         temp_path = test_data.temp_path
-        input_files = test_data.input_files
-        target_files = test_data.target_files
         upload_path = test_data.upload_path
+        upload_files = self._make_upload_files(test_data.input_files, test_data.target_files)
 
         ZipUploadFiles.MAX_FILE_LIMIT = 100*1024  # Zip all files smaller than 100 KB
 
-        zip_uploads = ZipUploadFiles(input_files, target_files)
-        final_input_files, final_target_files = zip_uploads.create_zip(upload_path)
+        result = ZipUploadFiles(upload_files).create_zip(upload_path)
 
-        expected_input_files = sorted([
+        expected_files = sorted([
             Path(temp_path, '1/test_4.xyz'),
             Path(temp_path, '2/test_3.xyz'),
             Path(temp_path, '2/test_4.xyz'),
@@ -61,7 +63,7 @@ class TestZipUploadFiles:
             Path(upload_path, 'upload_0.agora_upload'),
         ])
 
-        expected_target_files = sorted([
+        expected_targets = sorted([
             '1/test_4.xyz',
             '2/test_3.xyz',
             '2/test_4.xyz',
@@ -93,11 +95,11 @@ class TestZipUploadFiles:
             '4/test_0.xyz',
         ])
 
-        assert sorted(final_input_files) == expected_input_files
-        assert sorted(final_target_files) == expected_target_files
+        assert sorted([f.file for f in result]) == expected_files
+        assert sorted([f.target for f in result]) == expected_targets
 
-        zip_file_path = final_input_files[0]
-        with zipfile.ZipFile(zip_file_path, 'r') as z:
+        zip_file = next(f for f in result if f.target == 'upload_0.agora_upload')
+        with zipfile.ZipFile(zip_file.file, 'r') as z:
             assert sorted([info.filename for info in z.infolist()]) == expected_zipped_files
 
 
@@ -106,6 +108,8 @@ class TestURLValidate:
     def test_url_validate(self):
         assert validate_url('https://gauss4.ethz.ch') == 'https://gauss4.ethz.ch'
         assert validate_url('http://gauss4.ethz.ch') == 'http://gauss4.ethz.ch'
-        assert validate_url('gauss4.ethz.ch') == 'http://gauss4.ethz.ch'
-        assert validate_url('gauss4.ethz.ch/') == 'http://gauss4.ethz.ch'
+        with pytest.raises(AgoraException):
+            validate_url('gauss4.ethz.ch') == 'http://gauss4.ethz.ch'
+        with pytest.raises(AgoraException):
+            validate_url('gauss4.ethz.ch/') == 'http://gauss4.ethz.ch'
         assert validate_url('http://gauss4.ethz.ch/exam/1/') == 'http://gauss4.ethz.ch'

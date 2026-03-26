@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from typing import List, Union, Optional
 
@@ -239,6 +240,17 @@ class Agora:
         response = self.http_client.delete(url, timeout=60)
         if response.status_code != 204:
             raise AgoraException('Cannot delete the task: ' + response.text)
+
+    def load_tasks(self, filepath):
+        with open(filepath) as f:
+            data = json.load(f)
+        tasks = []
+        for item in data:
+            if 'yml' in item:
+                tasks.append(ScriptTask.from_response(item, http_client=self.http_client))
+            else:
+                tasks.append(Task.from_response(item, http_client=self.http_client))
+        return tasks
 
     # Search
     def search_series(self, aSearchString):

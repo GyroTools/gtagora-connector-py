@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import yaml
+
 from gtagora.exception import AgoraException
 from gtagora.models.base import BaseModel
 from gtagora.models.timeline import TimelineItem
@@ -251,3 +253,33 @@ class Task(BaseModel):
 class ScriptTask(Task):
 
     BASE_URL = '/api/v2/taskdefinition_yaml/'
+
+    YAML_TYPE_MAP = {
+        'exam': Task.INPUT_TYPE_EXAM,
+        'study': Task.INPUT_TYPE_EXAM,
+        'series': Task.INPUT_TYPE_SERIES,
+        'dataset': Task.INPUT_TYPE_DATASET,
+        'file': Task.INPUT_TYPE_FILE,
+        'string': Task.INPUT_TYPE_STRING,
+        'integer': Task.INPUT_TYPE_INTEGER,
+        'float': Task.INPUT_TYPE_FLOAT,
+        'select': Task.INPUT_TYPE_SELECT,
+        'folder': Task.INPUT_TYPE_FOLDER,
+    }
+
+    def _set_values(self, model_dict):
+        super()._set_values(model_dict)
+        yml = getattr(self, 'yml', None) or {}
+        if isinstance(yml, str):
+            yml = yaml.safe_load(yml) or {}
+        yaml_inputs = yml.get('inputs') or {}
+        self.inputs = [
+            {
+                'key': name,
+                'type': self.YAML_TYPE_MAP.get(props.get('type', ''), Task.INPUT_TYPE_STRING),
+                'required': props.get('required', True),
+            }
+            for name, props in yaml_inputs.items()
+        ]
+        if not hasattr(self, 'outputs') or self.outputs is None:
+            self.outputs = []

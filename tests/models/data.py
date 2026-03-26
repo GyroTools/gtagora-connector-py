@@ -110,3 +110,24 @@ task = {
         "owner": 1,
         "host": None
     }
+
+script_task = {
+    "id": 10,
+    "name": "my_script_task",
+    "yml": {
+        "inputs": {
+            "in1": {"type": "dataset", "required": True},
+            "in2": {"type": "integer", "required": False},
+            "in3": {"type": "study", "required": True},
+        }
+    }
+}
+
+timeline_item = {
+    "id": 1,
+    "data": {"state": 2}
+}
+
+version = {
+    "version": "dev"
+}
