@@ -94,8 +94,9 @@ class TestScriptTask:
 
         result = t.run(in1=42, in2=5, in3=7)
 
-        assert http_client.last_post_url == '/api/v2/taskdefinition_yaml/10/run/'
-        assert http_client.last_post_data['inputs']['in1'] == {'object_id': 42, 'object_type': 'dataset'}
-        assert http_client.last_post_data['inputs']['in2'] == 5
-        assert http_client.last_post_data['inputs']['in3'] == {'object_id': 7, 'object_type': 'exam'}
+        last = http_client.requests[-1]
+        assert last['url'] == '/api/v2/taskdefinition_yaml/10/run/'
+        assert last['data']['inputs']['in1'] == {'object_id': 42, 'object_type': 'dataset'}
+        assert last['data']['inputs']['in2'] == 5
+        assert last['data']['inputs']['in3'] == {'object_id': 7, 'object_type': 'exam'}
         assert result is not None

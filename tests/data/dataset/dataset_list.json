@@ -1,0 +1,39 @@
+{
+    "count": 2,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "id": 1,
+            "created_date": "2024-01-15T10:30:00Z",
+            "modified_date": "2024-01-15T10:30:00Z",
+            "serie": 1,
+            "exam": null,
+            "name": "DICOM dataset",
+            "type": 300,
+            "mime_type": "application/dicom",
+            "total_size": 10485760,
+            "thumbnails": [],
+            "version": null,
+            "is_viewable": true,
+            "locked": false,
+            "datafiles": []
+        },
+        {
+            "id": 2,
+            "created_date": "2024-01-15T10:31:00Z",
+            "modified_date": "2024-01-15T10:31:00Z",
+            "serie": 1,
+            "exam": null,
+            "name": "NIfTI dataset",
+            "type": 600,
+            "mime_type": "application/octet-stream",
+            "total_size": 2097152,
+            "thumbnails": [],
+            "version": null,
+            "is_viewable": false,
+            "locked": false,
+            "datafiles": []
+        }
+    ]
+}

@@ -1,0 +1,39 @@
+{
+    "count": 2,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "id": 1,
+            "owner": 1,
+            "patient": 2,
+            "project": 3,
+            "uid": "1.2.840.10008.5.1.4.1.1.4",
+            "name": "Brain MRI",
+            "created_date": "2024-01-15T10:30:00Z",
+            "start_time": "2024-01-15T08:00:00Z",
+            "description": "Standard brain MRI exam",
+            "scanner_name": "MAGNETOM Prisma",
+            "is_anonymized": false,
+            "locked": false,
+            "valid": null,
+            "messages": []
+        },
+        {
+            "id": 2,
+            "owner": 1,
+            "patient": 2,
+            "project": 3,
+            "uid": "1.2.840.10008.5.1.4.1.1.5",
+            "name": "Spine MRI",
+            "created_date": "2024-01-16T09:00:00Z",
+            "start_time": "2024-01-16T07:30:00Z",
+            "description": "",
+            "scanner_name": "MAGNETOM Prisma",
+            "is_anonymized": false,
+            "locked": false,
+            "valid": null,
+            "messages": []
+        }
+    ]
+}

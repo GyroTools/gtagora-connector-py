@@ -1,0 +1,43 @@
+[
+    {
+        "id": 10,
+        "folder": 5,
+        "object_id": 1,
+        "content_type": "exam",
+        "modified_date": "2024-01-15T10:30:00Z",
+        "is_link": false,
+        "is_temporary": false,
+        "content_object": {
+            "id": 1,
+            "owner": 1,
+            "patient": 2,
+            "project": 3,
+            "uid": "1.2.840.10008.5.1.4.1.1.4",
+            "name": "Brain MRI",
+            "created_date": "2024-01-15T10:30:00Z",
+            "start_time": "2024-01-15T08:00:00Z",
+            "description": "",
+            "scanner_name": "MAGNETOM Prisma",
+            "is_anonymized": false,
+            "locked": false,
+            "valid": null,
+            "messages": []
+        }
+    },
+    {
+        "id": 11,
+        "folder": 5,
+        "object_id": 6,
+        "content_type": "folder",
+        "modified_date": "2024-01-15T11:00:00Z",
+        "is_link": false,
+        "is_temporary": false,
+        "content_object": {
+            "id": 6,
+            "name": "Subfolder",
+            "project": 3,
+            "queries": [],
+            "locked": false
+        }
+    }
+]

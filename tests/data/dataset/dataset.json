@@ -1,0 +1,41 @@
+{
+    "id": 1,
+    "created_date": "2024-01-15T10:30:00Z",
+    "modified_date": "2024-01-15T10:30:00Z",
+    "serie": 1,
+    "exam": null,
+    "name": "DICOM dataset",
+    "type": 300,
+    "mime_type": "application/dicom",
+    "total_size": 10485760,
+    "thumbnails": [],
+    "version": null,
+    "is_viewable": true,
+    "locked": false,
+    "datafiles": [
+        {
+            "id": 1,
+            "type": 1,
+            "relative_path": "scan_001.dcm",
+            "original_filename": "scan_001.dcm",
+            "size": 5242880,
+            "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+            "is_anonymized": false,
+            "mime_type": "application/dicom",
+            "created_date": "2024-01-15T10:30:00Z",
+            "modified_date": "2024-01-15T10:30:00Z"
+        },
+        {
+            "id": 2,
+            "type": 1,
+            "relative_path": "scan_002.dcm",
+            "original_filename": "scan_002.dcm",
+            "size": 5242880,
+            "sha1": "adc83b19e793491b1c6ea0fd8b46cd9f32e592fc",
+            "is_anonymized": false,
+            "mime_type": "application/dicom",
+            "created_date": "2024-01-15T10:30:00Z",
+            "modified_date": "2024-01-15T10:30:00Z"
+        }
+    ]
+}
