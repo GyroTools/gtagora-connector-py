@@ -1,0 +1,14 @@
+[
+  {
+    "id": 10,
+    "name": "User Parameters",
+    "read_only": false,
+    "parameters": []
+  },
+  {
+    "id": 11,
+    "name": "DICOM Parameters",
+    "read_only": true,
+    "parameters": []
+  }
+]

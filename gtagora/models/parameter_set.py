@@ -1,3 +1,5 @@
+from typing import Dict, List, Union
+
 from gtagora.exception import AgoraException
 from gtagora.models.base import BaseModel
 from gtagora.models.parameter import Parameter
@@ -8,6 +10,51 @@ class ParameterSet(BaseModel):
 
     def __init__(self, http_client):
         super().__init__(http_client)
+
+    @classmethod
+    def create(cls, http_client, parent_url: str, name: str, parameters: List[Dict]) -> 'ParameterSet':
+        """Create a new user-defined ParameterSet on the parent object.
+
+        Args:
+            http_client: The HTTP client to use.
+            parent_url: The parametersets endpoint URL of the parent object,
+                e.g. '/api/v2/exam/1/parametersets/'.
+            name: Name for the new ParameterSet.
+            parameters: List of parameter dicts with at least 'Name' and 'Value' keys.
+
+        Returns:
+            The created ParameterSet instance.
+        """
+        data = {'name': name, 'parameters': parameters}
+        response = http_client.post(parent_url, json=data)
+        if response.status_code == 201:
+            created = response.json()
+            return cls.get(created['id'], http_client=http_client)
+        raise AgoraException(
+            f'Could not create ParameterSet. HTTP status = {response.status_code}: {response.text}'
+        )
+
+    @classmethod
+    def update(cls, http_client, parameterset_id: int, name: str, parameters: List[Dict]) -> 'ParameterSet':
+        """Update an existing user-defined ParameterSet.
+
+        Args:
+            http_client: The HTTP client to use.
+            parameterset_id: The ID of the ParameterSet to update.
+            name: New name for the ParameterSet.
+            parameters: New list of parameter dicts with at least 'Name' and 'Value' keys.
+
+        Returns:
+            The updated ParameterSet instance.
+        """
+        url = f'{cls.BASE_URL}{parameterset_id}/'
+        data = {'name': name, 'parameters': parameters}
+        response = http_client.patch(url, json=data)
+        if response.status_code == 200:
+            return cls.get(parameterset_id, http_client=http_client)
+        raise AgoraException(
+            f'Could not update ParameterSet. HTTP status = {response.status_code}: {response.text}'
+        )
 
     def _get_object(self, id):
         if id:

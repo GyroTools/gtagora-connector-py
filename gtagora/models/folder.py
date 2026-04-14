@@ -1,6 +1,6 @@
 from gtagora.exception import AgoraException
 from gtagora.http.client import ProgressCallback
-from gtagora.models.base import LinkToFolderMixin, BaseModel, TagMixin, RatingMixin
+from gtagora.models.base import LinkToFolderMixin, BaseModel, TagMixin, RatingMixin, ParametersMixin
 from gtagora.models.breadcrumb import Breadcrumb
 from gtagora.models.dataset import Dataset
 from gtagora.models.datafile import Datafile
@@ -15,7 +15,7 @@ from typing import List, Optional
 from functools import partial
 
 
-class Folder(LinkToFolderMixin, TagMixin, RatingMixin, BaseModel):
+class Folder(LinkToFolderMixin, TagMixin, RatingMixin, ParametersMixin, BaseModel):
     BASE_URL = '/api/v1/folder/'
     BASE_URL_V2 = '/api/v2/folder/'
 

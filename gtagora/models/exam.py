@@ -3,7 +3,7 @@ from typing import List, Optional
 from gtagora.exception import AgoraException
 from gtagora.http.client import ProgressCallback
 from gtagora.models.base import BaseModel, LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, \
-    RelationMixin, UIDGetMixin
+    RelationMixin, UIDGetMixin, ParametersMixin
 from gtagora.models.dataset import Dataset
 from gtagora.models.import_package import import_data
 from gtagora.models.series import Series
@@ -13,7 +13,7 @@ from gtagora.utils import remove_illegal_chars
 from pathlib import Path
 
 
-class Exam(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, RelationMixin, BaseModel, UIDGetMixin):
+class Exam(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, RelationMixin, ParametersMixin, BaseModel, UIDGetMixin):
     BASE_URL = '/api/v1/exam/'
     BASE_URL_V2 = '/api/v2/exam/'
 

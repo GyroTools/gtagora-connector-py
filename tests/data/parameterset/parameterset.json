@@ -1,0 +1,9 @@
+{
+  "id": 10,
+  "name": "User Parameters",
+  "read_only": false,
+  "parameters": [
+    {"Name": "TR", "Value": 1.5},
+    {"Name": "TE", "Value": 0.03}
+  ]
+}

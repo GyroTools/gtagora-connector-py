@@ -410,3 +410,161 @@ class UIDGetMixin:
             return instance.from_response(response.json(), http_client=http_client)
         else:
             raise AgoraException(f'Could not get the {cls.__name__} with UID {uid}: {response.text}')
+
+
+class ParametersMixin:
+    """Mixin that adds user-defined parameter management to Agora model objects.
+
+    Requires the class to have a ``BASE_URL_V2`` attribute pointing to the v2 API
+    endpoint for the object type (e.g. ``/api/v2/exam/``).
+    """
+
+    def get_parametersets(self):
+        """Return all ParameterSets associated with this object."""
+        from gtagora.models.parameter_set import ParameterSet
+
+        url = f'{self.BASE_URL_V2}{self.id}/parametersets/'
+        response = self.http_client.get(url)
+        if response.status_code != 200:
+            raise AgoraException(
+                f'Could not get parametersets. HTTP status = {response.status_code}: {response.text}'
+            )
+        parametersets = []
+        for parset in response.json():
+            if 'id' in parset:
+                parametersets.append(ParameterSet.get(parset['id'], http_client=self.http_client))
+        return parametersets
+
+    def set_parameters(self, parameters, name: str = 'User Parameters'):
+        """Create or update a user-defined ParameterSet by name (upsert — replaces all parameters).
+
+        If a user-defined (writable) ParameterSet with the given name already exists
+        on this object it will be updated in place; otherwise a new one is created.
+
+        .. note::
+            This **replaces** the full parameter list on the ParameterSet. To add or
+            modify individual parameters while keeping the rest intact, use
+            :meth:`update_parameters` instead.
+
+        Args:
+            parameters: Either a ``dict`` mapping parameter names to values, or a
+                ``list`` of dicts in the raw API format
+                ``[{"Name": "key", "Value": "val"}, ...]``.
+            name: Name of the ParameterSet. Defaults to ``"User Parameters"``.
+
+        Returns:
+            The created or updated :class:`~gtagora.models.parameter_set.ParameterSet`.
+        """
+        from gtagora.models.parameter_set import ParameterSet
+
+        params = self._normalise_parameters(parameters)
+        parent_url = f'{self.BASE_URL_V2}{self.id}/parametersets/'
+
+        existing = self._find_user_parameterset(name)
+        if existing is not None:
+            return ParameterSet.update(self.http_client, existing.id, name, params)
+        return ParameterSet.create(self.http_client, parent_url, name, params)
+
+    def update_parameters(self, parameters, name: str = 'User Parameters'):
+        """Add or update individual parameters in a ParameterSet, preserving existing ones.
+
+        Fetches the existing parameter list for the named ParameterSet (creating it if
+        it doesn't exist yet), merges the provided values in, and saves the result.
+        Parameters not mentioned in ``parameters`` are left unchanged.
+
+        Args:
+            parameters: Either a ``dict`` mapping parameter names to values, or a
+                ``list`` of dicts in the raw API format
+                ``[{"Name": "key", "Value": "val"}, ...]``.  When a list is supplied,
+                entries are matched by ``"Name"`` for the merge.
+            name: Name of the ParameterSet. Defaults to ``"User Parameters"``.
+
+        Returns:
+            The created or updated :class:`~gtagora.models.parameter_set.ParameterSet`.
+        """
+        from gtagora.models.parameter_set import ParameterSet
+
+        new_params = self._normalise_parameters(parameters)
+        parent_url = f'{self.BASE_URL_V2}{self.id}/parametersets/'
+
+        existing = self._find_user_parameterset(name)
+        if existing is None:
+            return ParameterSet.create(self.http_client, parent_url, name, new_params)
+
+        merged = self._merge_parameters(existing.get_parameters(), new_params)
+        return ParameterSet.update(self.http_client, existing.id, name, merged)
+
+    def add_parameters(self, parameters, name: str = 'User Parameters'):
+        """Create a new user-defined ParameterSet (always creates, never updates).
+
+        Args:
+            parameters: Either a ``dict`` mapping parameter names to values, or a
+                ``list`` of dicts in the raw API format
+                ``[{"Name": "key", "Value": "val"}, ...]``.
+            name: Name for the new ParameterSet. Defaults to ``"User Parameters"``.
+
+        Returns:
+            The newly created :class:`~gtagora.models.parameter_set.ParameterSet`.
+        """
+        from gtagora.models.parameter_set import ParameterSet
+
+        params = self._normalise_parameters(parameters)
+        parent_url = f'{self.BASE_URL_V2}{self.id}/parametersets/'
+        return ParameterSet.create(self.http_client, parent_url, name, params)
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _normalise_parameters(parameters):
+        """Convert a dict or list of dicts into the API list format."""
+        if isinstance(parameters, dict):
+            return [{'Name': k, 'Value': v} for k, v in parameters.items()]
+        return list(parameters)
+
+    @staticmethod
+    def _merge_parameters(existing_params, new_params):
+        """Merge new parameter values into an existing parameter list.
+
+        Existing parameters not present in ``new_params`` are preserved.
+        Parameters in ``new_params`` are added or overwrite existing ones matched
+        by ``Name``.  The full entry (including ``Properties``, ``NameText``, etc.)
+        is preserved for existing parameters that are only being updated by value.
+
+        Args:
+            existing_params: List of :class:`~gtagora.models.parameter.Parameter`
+                objects (as returned by ``ParameterSet.get_parameters()``).
+            new_params: List of dicts in API format ``[{"Name": ..., "Value": ...}]``.
+
+        Returns:
+            Merged list of dicts ready to be sent to the API.
+        """
+        new_by_name = {p['Name']: p for p in new_params}
+
+        merged = []
+        for existing in existing_params:
+            name = getattr(existing, 'Name', None)
+            if name in new_by_name:
+                # Start from existing (preserves Properties, NameText, etc.), override Value
+                entry = {k: v for k, v in vars(existing).items() if k != 'http_client'}
+                entry.update(new_by_name[name])
+                merged.append(entry)
+                del new_by_name[name]
+            else:
+                merged.append({k: v for k, v in vars(existing).items() if k != 'http_client'})
+
+        # Append any brand-new parameters not present before
+        merged.extend(new_by_name.values())
+        return merged
+
+    def _find_user_parameterset(self, name: str):
+        """Return the first writable ParameterSet with the given name, or None."""
+        try:
+            parametersets = self.get_parametersets()
+        except AgoraException:
+            return None
+        for ps in parametersets:
+            if getattr(ps, 'name', None) == name and not getattr(ps, 'read_only', True):
+                return ps
+        return None

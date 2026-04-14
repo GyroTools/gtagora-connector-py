@@ -1,8 +1,7 @@
 from gtagora.exception import AgoraException
-from gtagora.models.base import BaseModel, LinkToFolderMixin, TagMixin, RatingMixin
+from gtagora.models.base import BaseModel, LinkToFolderMixin, TagMixin, RatingMixin, ParametersMixin
 from gtagora.models.datafile import Datafile
 from gtagora.models.image_info import ImageInfo
-from gtagora.models.parameter_set import ParameterSet
 from gtagora.models.workbook import Workbook
 
 
@@ -44,7 +43,7 @@ class DatasetType:
             raise AgoraException(f'Unknown dataset type: {name}')
 
 
-class Dataset(LinkToFolderMixin, TagMixin, RatingMixin, BaseModel):
+class Dataset(LinkToFolderMixin, TagMixin, RatingMixin, ParametersMixin, BaseModel):
     BASE_URL = '/api/v1/dataset/'
     BASE_URL_V2 = '/api/v2/dataset/'
 
@@ -72,27 +71,11 @@ class Dataset(LinkToFolderMixin, TagMixin, RatingMixin, BaseModel):
             downloaded_files.append(datafile.download(filename))
         return downloaded_files
 
-    def get_parametersets(self):
-        url = f'{self.BASE_URL_V2}{self.id}/parametersets/'
-        response = self.http_client.get(url)
-        parametersets = []
-        if response.status_code == 200:
-            data = response.json()
-            for parset in data:
-                if 'id' in parset:
-                    parametersets.append(ParameterSet.get(parset['id'], http_client=self.http_client))
-
-        self.cached_parametersets = parametersets
-        return parametersets
-
     def get_parameters(self, filter: str = None):
         if hasattr(self, 'parameters'):
             return self.filtered_parameters(filter)
 
-        if hasattr(self, 'cached_parametersets'):
-            parametersets = self.cached_parametersets
-        else:
-            parametersets = self.get_parametersets()
+        parametersets = self.get_parametersets()
         parameters = []
         for parameterset in parametersets:
             parameters.extend(parameterset.get_parameters())
@@ -107,10 +90,7 @@ class Dataset(LinkToFolderMixin, TagMixin, RatingMixin, BaseModel):
             return self.parameters
 
     def get_parameter(self, name):
-        if hasattr(self, 'cached_parametersets'):
-            parametersets = self.cached_parametersets
-        else:
-            parametersets = self.get_parametersets()
+        parametersets = self.get_parametersets()
 
         for parameterset in parametersets:
             par = parameterset.get_parameter(name)

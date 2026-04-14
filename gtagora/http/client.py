@@ -51,6 +51,12 @@ class Client:
         return requests.put(url, auth=self.connection.get_auth(), json=json, params=params, timeout=timeout,
                             verify=self.connection.verify_certificate, **kwargs)
 
+    def patch(self, url, json=None, data=None, timeout=None, params=None, **kwargs):
+        url = self.connection.url + url
+        timeout = timeout if timeout else self.TIMEOUT
+        return requests.patch(url, auth=self.connection.get_auth(), data=data, json=json, params=params, timeout=timeout,
+                              verify=self.connection.verify_certificate, **kwargs)
+
     def delete(self, url, timeout=None, **kwargs):
         url = self.connection.url + url
         timeout = timeout if timeout else self.TIMEOUT
