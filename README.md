@@ -2,6 +2,8 @@
 
 gtagora-connector is a python library to access GyroTools' Agora system.
 
+📖 **Documentation:** [https://docs.gyrotools.com/connector/](https://docs.gyrotools.com/connector/)
+
 ## Installation
 
 Use the package manager [pip](https://pip.pypa.io/en/stable/) to install gtagora-connector.
