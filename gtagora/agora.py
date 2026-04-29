@@ -282,7 +282,9 @@ class Agora:
             if not path.exists():
                 raise FileNotFoundError(path.as_posix())
 
-        if target_project_id is not None and json_import_file is None:
+        all_aex = all(f.suffix == ".aex" for f in paths)
+
+        if target_project_id is not None and json_import_file is None and not all_aex:
             raise AgoraException('The target_project_id can only be used together with a json_import_file. If you want to import into the projects root folder please use target_folder_id instead.')
 
         if target_project_id is not None and target_folder_id is not None:
