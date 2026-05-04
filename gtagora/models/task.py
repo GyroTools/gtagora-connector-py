@@ -90,7 +90,7 @@ class Task(BaseModel):
                 raise AgoraException('Cannot delete the task: ' + response.text)
 
     def toDict(self):
-        fields = ['container_name', 'container_options', 'execute_template', 'host', 'host_id', 'id', 'inputs', 'members', 'mount_volumes', 'name', 'outputs', 'parse_output_for_error', 'success_exit_code', 'task_target', 'use_docker']
+        fields = ['container_name', 'container_options', 'project', 'execute_template', 'host', 'host_id', 'id', 'inputs', 'members', 'mount_volumes', 'name', 'outputs', 'parse_output_for_error', 'success_exit_code', 'task_target', 'use_docker', 'environment_variables', 'yml']
 
         d = dict()
         for field in fields:
