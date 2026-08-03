@@ -66,13 +66,6 @@ class Exam(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, Relat
             final_path.mkdir(parents=True, exist_ok=True)
             dataset.download(final_path)
 
-    def upload_dataset(self, input_files, dataset_type, target_files=None):
-        # This function creates a dataset of a given type all files given as input will be added to one dataset.
-        # Please note: At the moment there is no consistency check. We could create datasets with improper
-        # files (e.g. a PAR/REC dataset without PAR/REC files)
-        return self.http_client.upload_dataset(input_files, target_files, self.http_client, exam_id=self.id,
-                                               dataset_type=dataset_type)
-
     def copy_to_project(self, project_id):
         url = f'{self.BASE_URL_V2}{self.id}/copy_to/{project_id}/'
         response = self.http_client.post(url, json={}, timeout=60)

@@ -27,12 +27,6 @@ class Series(LinkToFolderMixin, DownloadDatasetMixin, TagMixin, RatingMixin, Rel
                 raise FileNotFoundError(path.as_posix())
         return import_data(self.http_client, paths=paths, series_id=self.id, wait=False, verbose=verbose, progress_callback=progress_callback)
 
-    def upload_dataset(self, input_files, dataset_type, target_files=None):
-        # This function creates a dataset of a given type all files given as input will be added to one dataset.
-        # Please note: At the moment there is no consistency check. We could create datasets with improper
-        # files (e.g. a PAR/REC dataset without PAR/REC files)
-        return self.http_client.upload_dataset(input_files, target_files, serie_id=self.id, dataset_type=dataset_type)
-
     def get_parameter(self, name):
         datasets = self.get_datasets()
         for dataset in datasets:
