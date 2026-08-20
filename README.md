@@ -557,6 +557,86 @@ Import tasks from file (Experimental!)
 agora.import_tasks('<input file>.json')
 ```
 
+### Working with workbooks
+
+The pure mask/contour-template logic (RLE codec, default CMR button templates, and
+mask/contour-group merge rules) lives in the dependency-free
+[gtagora-workbook-py](https://github.com/GyroTools/gtagora-workbook-py) package,
+which gtagora-connector depends on - `Workbook` here just wraps it with the HTTP
+calls needed to talk to Agora.
+
+Create a new (generic ROI) workbook for a dataset:
+
+```python
+from gtagora.models.workbook import Workbook
+
+dataset = agora.get_dataset(158)
+workbook = Workbook.create(dataset.id, agora.http_client)
+```
+
+Create a CMR-flavoured workbook instead, pre-populated with the default CMR contour
+and landmark buttons (LV EpiCard/EndoCard, RV EpiCard/EndoCard, PeriCard, Scar,
+Reference, RV insertion landmarks):
+
+```python
+workbook = Workbook.create_cmr(dataset.id, agora.http_client, name='CMR Workbook')
+```
+
+Get an existing workbook by ID:
+
+```python
+from gtagora.models.workbook import Workbook
+
+workbook = Workbook.get(23, http_client=agora.http_client)
+```
+
+Decode the masks stored in a workbook. `decode_masks()` returns a dict mapping each
+mask's name to a `DecodedMask(data, shape)` - kept dependency-free, so `data` is a flat
+Python list (in C-order for `shape`) rather than a numpy array:
+
+```python
+decoded_masks = workbook.decode_masks()
+for name, mask in decoded_masks.items():
+    print(f'{name}: {len(mask.data)} values, shape {mask.shape}')
+```
+
+Convert a decoded mask to a numpy array for further processing:
+
+```python
+import numpy as np
+
+decoded_masks = workbook.decode_masks()
+mask = decoded_masks['AI Segmentation']
+array = np.array(mask.data, dtype=np.uint8).reshape(mask.shape)
+```
+
+Get the workbook's effective contour buttons - its own if it has any, otherwise the
+default CMR set (e.g. for a plain ROI/GENERIC workbook):
+
+```python
+object_buttons = workbook.resolve_contour_buttons()
+```
+
+Write a mask and/or contour groups into a workbook. `update()` PATCHes the workbook
+back to Agora, replacing any existing mask/contour group that shares a name with an
+incoming one (so calling it again with the same names updates them instead of piling
+up duplicates) rather than leaving the rest of the workbook untouched:
+
+```python
+from workbook.mask import encode_mask
+
+mask = {
+    'name': 'AI Segmentation',
+    'mLabels': [{'mLabelIndex': 1, 'mLabelActive': True, 'mLabelDescription': 'Label 1',
+                 'mLabelColor': {'r': 255, 'g': 0, 'b': 0}}],
+    'mSizeX': size_x, 'mSizeY': size_y, 'mSizeZ': size_z, 'mSizeT': size_t,
+    'mSliceMask': [{'mBase64Values': encode_mask(slice_labels)} for slice_labels in slices],
+}
+contour_groups = [...]  # ContourGroup dicts, e.g. from your own contour-extraction code
+
+workbook = workbook.update(mask=mask, contour_groups=contour_groups, object_buttons=object_buttons)
+```
+
 ### Working with parameters
 
 Get a parameter by name

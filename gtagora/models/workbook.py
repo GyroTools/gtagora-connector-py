@@ -1,41 +1,25 @@
-import json
-
+from gtagora.exception import AgoraException
 from gtagora.models.base import BaseModel
-import base64
-import numpy as np
+
+from workbook.mask import DecodedMask, decode_full_mask  # noqa: F401 (re-exported)
+from workbook.session import merge_contour_session, merge_mask_session
+from workbook.session import resolve_contour_buttons as _resolve_contour_buttons
+from workbook.templates import new_cmr_workbook_body
 
 
 class Workbook(BaseModel):
     BASE_URL = '/api/v2/workbook/'
 
-    MASK_TYPE_EMPTY = 0
-    MASK_TYPE_FILLED = 1
-    MASK_TYPE_BITMASK1 = 2
-    MASK_TYPE_BITMASK2 = 3
-    MASK_TYPE_BITMASK3 = 4
-    MASK_TYPE_BYTE_ARRAY = 5
-    MASK_TYPE_REGULAR1 = 6
-    MASK_TYPE_REGULAR2 = 7
-    MASK_TYPE_REGULAR3 = 8
-
     def decode_masks(self):
+        """Returns {mask name: DecodedMask} for every mask in this workbook - see
+        workbook.mask.DecodedMask for how to turn one into a numpy array."""
         decoded_masks = {}
         if hasattr(self, 'mask'):
             masks = self.mask.get('mMasks')
             if masks:
                 for mask in masks:
-                    siz = [mask.get('mSizeX', 1), mask.get('mSizeY', 1), mask.get('mSizeZ', 1), mask.get('mSizeT', 1)]
                     name = mask.get('name', 'mask')
-                    slice_masks = mask.get('mSliceMask')
-                    if len(slice_masks) != siz[2] * siz[3]:
-                        raise Exception('Invalid mask size')
-
-                    cur_decoded_mask = np.zeros((siz[0], siz[1], siz[2]*siz[3]), dtype=np.uint8)
-                    for i, slice_mask in enumerate(slice_masks):
-                        decoded_list = self._decode_mask(slice_mask.get('mBase64Values', ''), siz[0]*siz[1])
-                        cur_decoded_mask[:, :, i] = np.array(decoded_list).reshape(siz[0], siz[1])
-                    cur_decoded_mask.reshape(siz)
-                    decoded_masks[name] = cur_decoded_mask.reshape(siz)
+                    decoded_masks[name] = decode_full_mask(mask)
         return decoded_masks
 
     @staticmethod
@@ -80,66 +64,60 @@ class Workbook(BaseModel):
                   "mask": {"mMasks": []}
                 }
 
-    def _decode_mask(self, b64mask, length):
-        encoded_mask = base64.b64decode(b64mask)
+    @staticmethod
+    def create_cmr(dataset_id: int, http_client, name: str = 'CMR Workbook'):
+        """Creates a new CMR-flavoured workbook for a dataset (contour_tab, mask_tab,
+        statistics_tab and cmr_tab all enabled), pre-populated with the default CMR
+        contour/landmark buttons (LV EpiCard/EndoCard, RV EpiCard/EndoCard, PeriCard,
+        Scar, Reference, RV insertion landmarks) - see
+        workbook.templates.new_cmr_workbook_body.
+        """
+        body = new_cmr_workbook_body(dataset_id, name)
+        response = http_client.post(Workbook.BASE_URL, json=body)
+        if response.status_code != 201:
+            raise AgoraException(f'Could not create the workbook: status={response.status_code}, {response.text}')
+        return Workbook.from_response(response.json(), http_client)
 
-        mask = [0] * length
-        if encoded_mask:
-            mask_type = encoded_mask[0]
-            nr_bytes, shifts = self._get_nr_bytes(mask_type)
+    def resolve_contour_buttons(self) -> list:
+        """Returns this workbook's existing contour buttons, or the default CMR set
+        if it doesn't have any yet (e.g. a plain ROI/GENERIC workbook) - see
+        workbook.session.resolve_contour_buttons.
+        """
+        return _resolve_contour_buttons(getattr(self, 'contour', None))
 
-            if mask_type == self.MASK_TYPE_EMPTY:
-                return mask
-            elif mask_type == self.MASK_TYPE_FILLED:
-                return [encoded_mask[1]] * length
-            elif mask_type == self.MASK_TYPE_BYTE_ARRAY:
-                return list(encoded_mask[1:length + 1])
-            elif mask_type in [self.MASK_TYPE_BITMASK1, self.MASK_TYPE_BITMASK2, self.MASK_TYPE_BITMASK3]:
-                label = encoded_mask[1]
-                target_index = int.from_bytes(encoded_mask[2:5], byteorder='big')
-                source_index = 5
-                entries = (len(encoded_mask) - 5) // nr_bytes
+    def update(self, mask: dict = None, contour_groups: list = None, object_buttons: list = None) -> 'Workbook':
+        """Merges a mask and/or contour groups into this workbook and PATCHes it back
+        to Agora. Any existing mask/contour group sharing a name with an incoming one
+        is replaced in place rather than duplicated, so calling update() again with
+        the same mask/group names updates them instead of piling up duplicates - see
+        workbook.session.merge_mask_session/merge_contour_session.
 
-                values = encoded_mask[source_index:]
-                run_lengths_target_inds = [0] * entries
-                for i in range(entries):
-                    for b in range(nr_bytes):
-                        shift = shifts[b]
-                        run_lengths_target_inds[i] += values[i * nr_bytes + b] << shift
-
-                for i in range(0, len(run_lengths_target_inds), 2):
-                    run_length = run_lengths_target_inds[i]
-                    target_index_increment = run_lengths_target_inds[i + 1] if i + 1 < len(
-                        run_lengths_target_inds) else 0
-                    mask[target_index:target_index + run_length] = [label] * run_length
-                    target_index += run_length + target_index_increment
-
-            elif mask_type in [self.MASK_TYPE_REGULAR1, self.MASK_TYPE_REGULAR2, self.MASK_TYPE_REGULAR3]:
-                target_index = 0
-                label = encoded_mask[1]
-                run_length = int.from_bytes(encoded_mask[2:5], byteorder='big')
-                source_index = 5
-                mask[target_index:target_index + run_length] = [label] * run_length
-                target_index += run_length
-                step = nr_bytes + 1
-                entries = (len(encoded_mask) - 5) // step
-
-                values = encoded_mask[source_index:]
-                for i in range(entries):
-                    label = values[i * step]
-                    run_length = 0
-                    for b in range(nr_bytes):
-                        shift = shifts[b]
-                        run_length += values[i * step + b + 1] << shift
-                    mask[target_index:target_index + run_length] = [label] * run_length
-                    target_index += run_length
-
-        return mask
-
-    def _get_nr_bytes(self, mask_type):
-        if mask_type in [self.MASK_TYPE_REGULAR2, self.MASK_TYPE_BITMASK2]:
-            return 2, [8, 0]
-        elif mask_type in [self.MASK_TYPE_REGULAR3, self.MASK_TYPE_BITMASK3]:
-            return 3, [16, 8, 0]
+        mask: a single Mask dict (see workbook.mask.encode_mask for building slice
+            data) to insert/replace by its 'name'. Omit to leave the mask session
+            untouched.
+        contour_groups: ContourGroup dicts to insert/replace by their 'name'. Omit
+            (along with object_buttons) to leave the contour session untouched.
+        object_buttons: replaces the workbook's objectButtons list outright - pass
+            resolve_contour_buttons() (plus any new buttons) if you want to keep the
+            existing ones. Required if contour_groups is given.
+        """
+        mask_session = getattr(self, 'mask', None) or {'id': self.id, 'mMasks': [], 'selectedMask': None}
+        if mask is not None:
+            mask_session = merge_mask_session(mask_session, self.id, mask)
         else:
-            return 1, [0]
+            mask_session['id'] = self.id
+
+        contour_session = getattr(self, 'contour', None) or \
+            {'id': self.id, 'contourGroups': [], 'landmarkGroups': [], 'objectButtons': []}
+        if contour_groups is not None or object_buttons is not None:
+            contour_session = merge_contour_session(
+                contour_session, self.id, contour_groups or [],
+                object_buttons if object_buttons is not None else contour_session.get('objectButtons', []))
+        else:
+            contour_session['id'] = self.id
+
+        url = f'{Workbook.BASE_URL}{self.id}/'
+        response = self.http_client.patch(url, json={'mask': mask_session, 'contour': contour_session})
+        if response.status_code != 200:
+            raise AgoraException(f'Could not update the workbook: status={response.status_code}, {response.text}')
+        return Workbook.from_response(response.json(), self.http_client)

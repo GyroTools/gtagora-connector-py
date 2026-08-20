@@ -1,9 +1,9 @@
 requests
 packaging
 pyyaml
+gtagora-workbook-py>=0.1.0
 autopep8
 flake8
 pytest
 pytest-cov==2.5.1
 mock
-numpy
