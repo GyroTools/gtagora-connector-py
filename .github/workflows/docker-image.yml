@@ -47,15 +47,13 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Build and push NIfTI variant image
-        # adds numpy+nibabel on top of the image just pushed above (see Docker/nifti/Dockerfile
-        # for why this is a separate opt-in variant rather than part of the base image).
-        # github.ref_name is the branch or tag that triggered this run, matching the base tag
-        # that step just published, so this variant always tracks the exact same base build.
+        # adds numpy+nibabel+dcm2niix on top of a from-source build of the connector (see
+        # Docker/nifti/Dockerfile) rather than being a separate opt-in variant derived from
+        # the base image above - it builds independently from the same checkout, so it has
+        # no ordering dependency on the base image push having completed.
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
           context: .
           file: Docker/nifti/Dockerfile
           push: true
-          build-args: |
-            BASE_VERSION=${{ github.ref_name }}
           tags: gyrotools/gtagora-connector-py:${{ github.ref_name }}-nifti
