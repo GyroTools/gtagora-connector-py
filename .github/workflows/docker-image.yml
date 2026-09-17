@@ -46,14 +46,16 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Build and push NIfTI variant image
-        # adds numpy+nibabel+dcm2niix on top of a from-source build of the connector (see
-        # Docker/nifti/Dockerfile) rather than being a separate opt-in variant derived from
-        # the base image above - it builds independently from the same checkout, so it has
-        # no ordering dependency on the base image push having completed.
+      - name: Build and push converter variant image
+        # adds numpy+nibabel+parrec2dcm+dcm2niix on top of a from-source build of the
+        # connector (see Docker/converter/Dockerfile) rather than being a separate opt-in
+        # variant derived from the base image above - it builds independently from the same
+        # checkout, so it has no ordering dependency on the base image push having completed.
+        # Named "-converter", not "-nifti": tasks may use this image for PAR/REC -> DICOM
+        # only (parrec2dcm), PAR/REC -> NIfTI only (dcm2niix), or the full chain through both.
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
           context: .
-          file: Docker/nifti/Dockerfile
+          file: Docker/converter/Dockerfile
           push: true
-          tags: gyrotools/gtagora-connector-py:${{ github.ref_name }}-nifti
+          tags: gyrotools/gtagora-connector-py:${{ github.ref_name }}-converter
