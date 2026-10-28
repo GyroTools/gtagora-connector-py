@@ -59,3 +59,14 @@ jobs:
           file: Docker/converter/Dockerfile
           push: true
           tags: gyrotools/gtagora-connector-py:${{ github.ref_name }}-converter
+
+      - name: Build and push scientific variant image
+        # adds numpy+scipy+matplotlib+pandas on top of a from-source build of the connector
+        # (see Docker/scientific/Dockerfile), for analysis tasks that fetch their inputs via the
+        # connector and produce tables/plots. Builds independently from the same checkout.
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          context: .
+          file: Docker/scientific/Dockerfile
+          push: true
+          tags: gyrotools/gtagora-connector-py:${{ github.ref_name }}-scientific
